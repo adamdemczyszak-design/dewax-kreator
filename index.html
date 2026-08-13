@@ -2342,10 +2342,20 @@
             return { wm2: w2, wm: wm };
         };
         // Parametry doboru mocy — jedno miejsce, bez liczb rozsypanych po kodzie.
+        // PUMP_FOLLOW_CAP i GROUND_UNCERTAINTY to celowo dwie różne wielkości,
+        // mimo tej samej wartości 1,15 — jedna dotyczy maszyny, druga gruntu.
         const DZ_SIZING = {
-            pumpShare:     0.90,   // udział mocy pompy brany do doboru źródła
-            pumpCapVsBldg: 1.15,   // sufit członu pompy: maks. 115% mocy chłodniczej budynku
-            designMargin:  1.15    // zapas projektowy DEWAX (założenie własne — normy nie podają wskaźnika procentowego)
+            // Ile mocy pompy bierzemy do doboru źródła.
+            pumpShare: 0.90,
+            // JAK BARDZO ŹRÓDŁO PODĄŻA ZA POMPĄ. Sufit członu pompy: źródło nie
+            // urośnie ponad 115% mocy chłodniczej budynku, nawet jeśli pompa jest
+            // większa. Pompa dobrana z zapasem (m.in. na szczyt ładowania CWU) nie
+            // pracuje mocą szczytową w sezonie — nie ma powodu pod nią wiercić.
+            PUMP_FOLLOW_CAP: 1.15,
+            // NIEPEWNOŚĆ GRUNTU. Zapas na to, że rzeczywista wydajność gruntu okaże
+            // się niższa od tabelarycznej (VDI 4640 podaje widełki, nie gwarancję).
+            // Założenie własne DEWAX — normy nie podają wskaźnika procentowego.
+            GROUND_UNCERTAINTY: 1.15
         };
         window.DZ_SIZING = DZ_SIZING;
         window.dxDzSizing = function(pDesign, cop, pumpKw, soilEff, soilWm2, soilWm){
@@ -2361,9 +2371,9 @@
             // sezonowe, a nie na chwilowe maksimum sprężarki. Stąd sufit 115% mocy
             // chłodniczej budynku. Uwaga: oba człony MUSZĄ być w mocy chłodniczej —
             // porównanie 0,9 × cPP z 1,15 × pDesign mieszałoby moc chłodniczą z grzewczą.
-            var pBase = Math.min(cPP * DZ_SIZING.pumpShare, cPB * DZ_SIZING.pumpCapVsBldg);
+            var pBase = Math.min(cPP * DZ_SIZING.pumpShare, cPB * DZ_SIZING.PUMP_FOLLOW_CAP);
             var req  = Math.max(cPB, pBase);        // bezpieczna moc wymagana
-            var reqZ = req * DZ_SIZING.designMargin;
+            var reqZ = req * DZ_SIZING.GROUND_UNCERTAINTY;
             var kos = Math.ceil(reqZ / se); if(kos % 2 !== 0) kos++;
             var kosP = kos * se;
             var R = window.dxSoilRates();
