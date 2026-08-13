@@ -2341,14 +2341,29 @@
             }catch(e){}
             return { wm2: w2, wm: wm };
         };
+        // Parametry doboru mocy — jedno miejsce, bez liczb rozsypanych po kodzie.
+        const DZ_SIZING = {
+            pumpShare:     0.90,   // udział mocy pompy brany do doboru źródła
+            pumpCapVsBldg: 1.15,   // sufit członu pompy: maks. 115% mocy chłodniczej budynku
+            designMargin:  1.15    // zapas projektowy DEWAX (założenie własne — normy nie podają wskaźnika procentowego)
+        };
+        window.DZ_SIZING = DZ_SIZING;
         window.dxDzSizing = function(pDesign, cop, pumpKw, soilEff, soilWm2, soilWm){
             var c  = Math.max(cop || 4, 1.5);
             var pk = (pumpKw > 0) ? pumpKw : pDesign;
             var se = (soilEff > 0) ? soilEff : 0.7;
             var cPB  = pDesign * (c - 1) / c;      // moc chłodnicza wymagana przez budynek
             var cPP  = pk * (c - 1) / c;           // moc chłodnicza przy pełnej mocy pompy
-            var req  = Math.max(cPB, cPP * 0.9);   // bezpieczna moc wymagana
-            var reqZ = req * 1.15;                 // + 15% zapasu projektowego DEWAX (założenie własne — normy nie podają wskaźnika procentowego)
+            // Ogranicznik nadmiaru pompy. Sam człon 0,9 × cPP powodował, że pompa
+            // dobrana z zapasem (m.in. na szczyt ładowania CWU) rozdmuchiwała dolne
+            // źródło ponad realną potrzebę budynku. Pompa z takim zapasem nie pracuje
+            // mocą szczytową w sezonie grzewczym — źródło projektujemy na obciążenie
+            // sezonowe, a nie na chwilowe maksimum sprężarki. Stąd sufit 115% mocy
+            // chłodniczej budynku. Uwaga: oba człony MUSZĄ być w mocy chłodniczej —
+            // porównanie 0,9 × cPP z 1,15 × pDesign mieszałoby moc chłodniczą z grzewczą.
+            var pBase = Math.min(cPP * DZ_SIZING.pumpShare, cPB * DZ_SIZING.pumpCapVsBldg);
+            var req  = Math.max(cPB, pBase);        // bezpieczna moc wymagana
+            var reqZ = req * DZ_SIZING.designMargin;
             var kos = Math.ceil(reqZ / se); if(kos % 2 !== 0) kos++;
             var kosP = kos * se;
             var R = window.dxSoilRates();
