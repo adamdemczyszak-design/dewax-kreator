@@ -2349,9 +2349,10 @@
                      copFromCatalog: !!brine };
         };
         // Jednostkowy odbior ciepla z gruntu wg VDI 4640 cz. 2 — zalezny od wybranego gruntu.
-        // Brak wyboru => wartosci ostrozne (20 W/m2 kolektora, 40 W/mb odwiertu).
+        // Brak wyboru => ryczalt DEWAX: 20 W/m2 kolektora, 43,3 W/mb odwiertu
+        // (4300 W na 100 m odwiertu, usredniony profil polski).
         window.dxSoilRates = function(){
-            var w2 = 20, wm = 40;
+            var w2 = 20, wm = 43.3;
             try{
                 var sel = document.getElementById('dxSoil');
                 var o = (sel && sel.selectedOptions && sel.selectedOptions[0]) ? sel.selectedOptions[0] : null;
@@ -4877,7 +4878,7 @@ function dxSoil(){
     const pozArea = S.pozArea;
     const poz = S.poz;
     const qA = S.qA || 20;                      // W/m2 kolektora (VDI 4640 cz.2)
-    const qL = S.qL || 40;                      // W/mb odwiertu (VDI 4640 cz.2)
+    const qL = S.qL || 43.3;                    // W/mb odwiertu (VDI 4640 cz.2)
     const dzP = (d.selectedDz==='poziome'||d.selectedDz==='kolektorinw') ? pozArea*qA/1000
               : d.selectedDz==='wodawoda' ? cPP
               : pio*qL/1000;   // odwiert pionowy — technologia domyślna
@@ -6136,7 +6137,7 @@ body{background:var(--dx-bg)!important;font-family:Inter,'DM Sans',system-ui,Ari
           w2.style.cssText='margin:0 0 18px;padding:14px 16px;background:#F6F9FB;border:1px solid #D8E3EB;border-radius:12px;';
           w2.innerHTML='<label style="display:block;font-size:10px;font-weight:700;color:#0B3553;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Warunki gruntowe (wydajność dolnego źródła)</label>'
             +'<select id="dxSoil" style="width:100%;background:#fff;border:1px solid #CBD5E1;padding:12px;font-size:13px;font-weight:600;border-radius:10px;outline:none;">'
-            +'<option value="ryczalt" data-wm2="20" data-wm="43.3" data-doc="wartość orientacyjna" data-prov="1" selected>Warunki gruntowe niepotwierdzone — wartość orientacyjna (20 W/m² · 43,3 W/mb)</option>'
+            +'<option value="ryczalt" data-wm2="20" data-wm="43.3" data-doc="ryczałt DEWAX przy braku rozpoznania gruntu — 4300 W na 100 m odwiertu, uśredniony profil polski" data-prov="1" selected>Ryczałt (brak rozpoznania gruntu) — 20 W/m² · 43,3 W/mb</option>'
             +'<option value="suchy" data-wm2="10" data-wm="20" data-doc="suchy piasek / żwir (VDI 4640, 2400 h)">Suchy piasek / żwir (10 W/m² · 20 W/mb)</option>'
             +'<option value="przecietny" data-wm2="20" data-wm="45" data-doc="grunt przeciętny (VDI 4640, 2400 h)">Przeciętny grunt (20 W/m² · 45 W/mb)</option>'
             +'<option value="wilgotny" data-wm2="24" data-wm="40" data-doc="glina / ił wilgotny (VDI 4640, 2400 h)">Wilgotna glina / ił (24 W/m² · 40 W/mb)</option>'
