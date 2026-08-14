@@ -1216,6 +1216,7 @@
                             <span class="text-sm font-bold text-slate-500">szt.</span>
                         </div>
                         <p class="text-[10px] text-slate-500 font-bold">× 2 500 zł = <span id="dz-koszowe-cost" class="text-dewax-navy font-black">20 000</span> zł netto</p>
+                        <p class="text-[9px] text-slate-400 mt-1" id="dz-koszowe-point">—</p>
                     </div>
                 </div>
                 <div class="card-select rounded-2xl p-6 flex flex-col items-center text-center" onclick="selectDz('pionowe')" id="dz-pionowe">
@@ -1230,6 +1231,7 @@
                             <span class="text-sm font-bold text-slate-500">mb</span>
                         </div>
                         <p class="text-[10px] text-slate-500 font-bold">× 140 zł = <span id="dz-pionowe-cost" class="text-dewax-navy font-black">23 100</span> zł netto</p>
+                        <p class="text-[9px] text-slate-400 mt-1" id="dz-pionowe-point">—</p>
                     </div>
                 </div>
                 <div class="card-select rounded-2xl p-6 flex flex-col items-center text-center" onclick="selectDz('poziome')" id="dz-poziome">
@@ -1245,6 +1247,7 @@
                         </div>
                         <p class="text-[10px] text-slate-500 font-bold">× 40 zł = <span id="dz-poziome-cost" class="text-dewax-navy font-black">16 500</span> zł netto</p>
                         <p class="text-[9px] text-slate-400 mt-1">Pow. działki: ~<span id="dz-poziome-area">250</span> m²</p>
+                        <p class="text-[9px] text-slate-400" id="dz-poziome-point">—</p>
                     </div>
                 </div>
                 <div class="card-select rounded-2xl p-6 flex flex-col items-center text-center" onclick="selectDz('wodawoda')" id="dz-wodawoda">
@@ -1257,6 +1260,7 @@
                             <span class="text-sm font-bold text-slate-500">zł</span>
                         </div>
                         <p class="text-[10px] text-slate-500 font-bold">Ryczałt = <span id="dz-wodawoda-cost" class="text-dewax-navy font-black">3 800</span> zł netto</p>
+                        <p class="text-[9px] text-slate-400 mt-1" id="dz-wodawoda-point">—</p>
                         <p class="text-[9px] text-slate-400 mt-1">Wymiennik + armatura + montaż</p>
                     </div>
                 </div>
@@ -1273,6 +1277,7 @@
                         </div>
                         <p class="text-[10px] text-slate-500 font-bold">Ryczałt = <span id="dz-kolektorinw-cost" class="text-dewax-navy font-black">5 000</span> zł netto</p>
                         <p class="text-[9px] text-slate-400 mt-1">Rury ok. <span id="dz-kolektorinw-mb">—</span> mb · ok. <span id="dz-kolektorinw-area">—</span> m² działki</p>
+                        <p class="text-[9px] text-slate-400" id="dz-kolektorinw-point">—</p>
                         <p class="text-[9px] text-slate-400">Wykop i zasyp po stronie Inwestora</p>
                         <p id="dz-kolektorinw-warn" class="text-[9px] font-bold mt-1 leading-snug" style="display:none;"></p>
                     </div>
@@ -2303,27 +2308,63 @@
                 return Number(m.power) || 0;
             }catch(e){ return Number(m && m.power) || 0; }
         };
+        // Odczyt danych producenta z KONKRETNEGO punktu pracy, niezależnie od tego,
+        // która karta jest zaznaczona. getDeviceSpecs() zwraca punkt zależny od
+        // selectedDz — dobre do opisu pompy, złe do doboru źródła, bo wtedy kliknięcie
+        // innej karty przestawiałoby ilości na wszystkich pozostałych.
+        // Kaskada: moc = suma jednostek, COP = średnia ważona mocą (jak dxCascadeSpecs).
+        window.dxSpecAt = function(m, point){
+            if(!m || !point) return null;
+            try{
+                var units = (m._cascade && m._units && m._units.length) ? m._units : [m];
+                var totKw = 0, wCop = 0;
+                for(var i = 0; i < units.length; i++){
+                    var s = units[i] && units[i].specs && units[i].specs[point];
+                    if(!s || !(s.kw > 0)) return null;   // brak danych choćby dla jednej jednostki
+                    totKw += s.kw;
+                    wCop  += s.kw * (Number(s.cop) || 0);
+                }
+                if(!(totKw > 0)) return null;
+                return { kw: totKw, cop: wCop / totKw };
+            }catch(e){ return null; }
+        };
         window.dxSizingParams = function(){
-            var cop = 5.30;
-            try{
-                var dz = selectedDz || 'koszowe';
-                var tbl = POBE.scop[dz] || POBE.scop['koszowe'];
-                cop = tbl[building.heatingType] || 5.30;
-            }catch(e){}
-            var pumpKw = 0;
-            try{
-                var m = (typeof selectedModelObj!=='undefined' ? selectedModelObj : null);
-                if(m && m.specs && typeof window.getDeviceSpecs === 'function'){
-                    var sp = window.getDeviceSpecs(m);
-                    if(sp && sp.cop) cop = sp.cop;   // punkt pracy producenta ma pierwszeństwo
-                    pumpKw = (typeof window.dxPointKw === 'function') ? window.dxPointKw(m) : ((sp && sp.kw) ? sp.kw : 0);
-                } else if(m && m.power){ pumpKw = m.power; }
-            }catch(e){}
+            var m = null;
+            try{ m = (typeof selectedModelObj !== 'undefined' ? selectedModelObj : null); }catch(e){}
+            var emit = 'low';
+            try{ emit = (building && building.heatingType) || 'low'; }catch(e){}
+
+            // KOTWICA doboru: opublikowany punkt solankowy B0/W35. Od niego DZ_TECH
+            // liczy pozostałe technologie. Bez danych producenta — baza POBE bez
+            // dzScopFactor, bo korektę na technologię robi już copFactor (inaczej
+            // technologia byłaby korygowana dwa razy).
+            var brine = window.dxSpecAt(m, 'B0W35');
+            var cop = brine ? brine.cop : 5.30;
+            if(!brine){
+                try{ cop = (POBE.scopBase[emit] || 5.30); }catch(e){ cop = 5.30; }
+            }
+            // Woda-woda ma własny opublikowany punkt — nie przeliczamy go z solanki.
+            var wp = (emit === 'low') ? 'W10W35' : 'W10W45';
+            var water = window.dxSpecAt(m, wp);
+
+            var pumpKw = brine ? brine.kw : 0;
+            var pumpKwWater = water ? water.kw : 0;
+            if(!pumpKw){
+                try{
+                    if(m && m.specs && typeof window.getDeviceSpecs === 'function'){
+                        var sp = window.getDeviceSpecs(m);
+                        pumpKw = (typeof window.dxPointKw === 'function') ? window.dxPointKw(m) : ((sp && sp.kw) ? sp.kw : 0);
+                    } else if(m && m.power){ pumpKw = m.power; }
+                }catch(e){}
+            }
             var sel = document.getElementById('dxSoil');
             var soilEff = sel ? parseFloat(sel.value) : 0.7;
             if(!(soilEff > 0)) soilEff = 0.7;
             var R = (typeof window.dxSoilRates === 'function') ? window.dxSoilRates() : { wm2:20, wm:40 };
-            return { cop: Math.max(cop, 1.5), pumpKw: pumpKw, soilEff: soilEff, soilWm2: R.wm2, soilWm: R.wm };
+            return { cop: Math.max(cop, 1.5), pumpKw: pumpKw, soilEff: soilEff,
+                     soilWm2: R.wm2, soilWm: R.wm,
+                     copWater: water ? water.cop : 0, pumpKwWater: pumpKwWater,
+                     copFromCatalog: !!brine };
         };
         // Jednostkowy odbior ciepla z gruntu wg VDI 4640 cz. 2 — zalezny od wybranego gruntu.
         // Brak wyboru => wartosci ostrozne (20 W/m2 kolektora, 40 W/mb odwiertu).
@@ -2358,8 +2399,33 @@
             GROUND_UNCERTAINTY: 1.15
         };
         window.DZ_SIZING = DZ_SIZING;
-        window.dxDzSizing = function(pDesign, cop, pumpKw, soilEff, soilWm2, soilWm){
-            var c  = Math.max(cop || 4, 1.5);
+
+        // ===== PARAMETRY PER TECHNOLOGIA =====
+        // Każda technologia pracuje na innej temperaturze solanki, więc ma własny
+        // punkt pracy i własne reqZ. Wcześniej wszystkie karty dzieliły jedno wspólne
+        // reqZ przez różne wskaźniki gruntu — odwiert wychodził zaniżony.
+        //
+        // copFactor odnosi się do OPUBLIKOWANEGO punktu B0/W35 z cennika producenta,
+        // który jest kotwicą doboru. Producent nie publikuje B-2/W35 ani B-3/W35, więc
+        // wartości dla spiral i kolektora są przeliczeniem DEWAX, nie danymi katalogowymi
+        // (oznaczane w ofercie). Woda-woda ma własny opublikowany punkt W10/W35.
+        //
+        // hours — założona liczba godzin pracy źródła w roku; wchodzi do korekty
+        // wskaźników jednostkowych VDI 4640 cz. 2 (patrz qFactor).
+        const DZ_TECH = {
+            odwiert:  { copFactor: 1.00, hours: 2400, label: 'B0/W35',  dz: 'pionowe' },
+            spirale:  { copFactor: 0.92, hours: 1800, label: 'B-2/W35', dz: 'koszowe' },
+            poziomy:  { copFactor: 0.90, hours: 1800, label: 'B-3/W35', dz: 'poziome' },
+            wodawoda: { copFactor: 1.15, hours: 2400, label: 'W10/W35', dz: 'wodawoda' }
+        };
+        window.DZ_TECH = DZ_TECH;
+        // Kolektor w wykopie Inwestora to ta sama technologia co kolektor poziomy.
+        const DZ_TECH_OF = { pionowe:'odwiert', koszowe:'spirale', poziome:'poziomy',
+                             kolektorinw:'poziomy', wodawoda:'wodawoda' };
+        window.dxTechOf = function(dz){ return DZ_TECH_OF[dz] || 'spirale'; };
+
+        window.dxDzSizing = function(pDesign, cop, pumpKw, soilEff, soilWm2, soilWm, copWater, pumpKwWater){
+            var c  = Math.max(cop || 4, 1.5);       // kotwica: COP B0/W35 z cennika
             var pk = (pumpKw > 0) ? pumpKw : pDesign;
             var se = (soilEff > 0) ? soilEff : 0.7;
             var cPB  = pDesign * (c - 1) / c;      // moc chłodnicza wymagana przez budynek
@@ -2369,19 +2435,49 @@
             // źródło ponad realną potrzebę budynku. Pompa z takim zapasem nie pracuje
             // mocą szczytową w sezonie grzewczym — źródło projektujemy na obciążenie
             // sezonowe, a nie na chwilowe maksimum sprężarki. Stąd sufit 115% mocy
-            // chłodniczej budynku. Uwaga: oba człony MUSZĄ być w mocy chłodniczej —
-            // porównanie 0,9 × cPP z 1,15 × pDesign mieszałoby moc chłodniczą z grzewczą.
-            var pBase = Math.min(cPP * DZ_SIZING.pumpShare, cPB * DZ_SIZING.PUMP_FOLLOW_CAP);
-            var req  = Math.max(cPB, pBase);        // bezpieczna moc wymagana
-            var reqZ = req * DZ_SIZING.GROUND_UNCERTAINTY;
-            var kos = Math.ceil(reqZ / se); if(kos % 2 !== 0) kos++;
-            var kosP = kos * se;
+            // budynku. Liczone na mocy GRZEWCZEJ, bo dopiero niżej dzielimy je przez
+            // (COP-1)/COP osobno dla każdej technologii — sufit sam w sobie nie zależy
+            // od COP. Wynik dla kotwicy jest identyczny jak przy liczeniu na chłodniczej.
+            function heatBase(kw){
+                return Math.max(pDesign,
+                    Math.min((kw > 0 ? kw : pDesign) * DZ_SIZING.pumpShare,
+                             pDesign * DZ_SIZING.PUMP_FOLLOW_CAP));
+            }
+            var pHeatBase = heatBase(pk);
+            // Woda-woda: pompa oddaje w W10/W35 inną moc niż w B0/W35, więc sufit
+            // liczymy od jej własnej wydajności.
+            var pkWater = (pumpKwWater > 0) ? pumpKwWater : pk;
+            // reqZ osobno dla każdej technologii. Uwaga na kierunek: wyższy COP to
+            // mniej prądu, czyli WIĘCEJ ciepła pobranego z gruntu — copFactor < 1
+            // zmniejsza wymaganą moc źródła, a nie zwiększa.
             var R = window.dxSoilRates();
             var qA = (soilWm2 > 0) ? soilWm2 : R.wm2;   // W/m2 kolektora poziomego
             var qL = (soilWm  > 0) ? soilWm  : R.wm;    // W/mb odwiertu pionowego
-            var pio = Math.ceil(((reqZ * 1000) / qL) / 10) * 10;
-            var pozArea = Math.ceil((reqZ * 1000) / qA);
+            var tech = {};
+            Object.keys(DZ_TECH).forEach(function(k){
+                var T = DZ_TECH[k];
+                // Woda-woda ma własny opublikowany punkt pracy — nie przeliczamy go z B0/W35.
+                var copT = (k === 'wodawoda' && copWater > 0) ? copWater : c * T.copFactor;
+                copT = Math.max(copT, 1.5);
+                var hb = (k === 'wodawoda') ? heatBase(pkWater) : pHeatBase;
+                var reqT  = hb * (copT - 1) / copT;
+                var reqZT = reqT * DZ_SIZING.GROUND_UNCERTAINTY;
+                tech[k] = { copT: copT, label: T.label, hours: T.hours,
+                            fromCatalog: (k === 'odwiert') || (k === 'wodawoda' && copWater > 0),
+                            req: reqT, reqZ: reqZT };
+            });
+            // Każda ilość liczona ze SWOJEGO reqZ — sonda ze spiral, mb odwiertu
+            // z odwiertu, mb rur z kolektora.
+            var kos = Math.ceil(tech.spirale.reqZ / se); if(kos % 2 !== 0) kos++;
+            var kosP = kos * se;
+            var pio = Math.ceil(((tech.odwiert.reqZ * 1000) / qL) / 10) * 10;
+            var pozArea = Math.ceil((tech.poziomy.reqZ * 1000) / qA);
             var poz = Math.ceil((pozArea / 0.8) / 10) * 10;
+            // req/reqZ na najwyższym poziomie dotyczą AKTUALNIE wybranej technologii —
+            // czytają je opis doboru, kontrola i oferta.
+            var selTech = window.dxTechOf(typeof selectedDz !== 'undefined' ? selectedDz : 'koszowe');
+            var req  = tech[selTech].req;
+            var reqZ = tech[selTech].reqZ;
             // Ręczne nadpisania z kroku 2 obowiązują WSZĘDZIE — także na stronie
             // technicznej oferty. Wcześniej kosztorys brał wartość ręczną, a tabela
             // wariantów wyliczoną, więc jedna oferta miała dwie różne ilości i ceny.
@@ -2392,6 +2488,7 @@
             var pozE = (ov.poziome > 0) ? parseInt(ov.poziome, 10) : poz;
             var pozAreaE = (ov.poziome > 0) ? Math.round(pozE * 0.8) : pozArea;
             return { cPB: cPB, cPP: cPP, req: req, reqZ: reqZ, soilEff: se, qA: qA, qL: qL,
+                     tech: tech, selTech: selTech, pHeatBase: pHeatBase,
                      kos: kosE, kosP: kosE * se, pio: pioE, pozArea: pozAreaE, poz: pozE,
                      kosAuto: kos, pioAuto: pio, pozAuto: poz, pozAreaAuto: pozArea,
                      manual: !!(ov.koszowe > 0 || ov.pionowe > 0 || ov.poziome > 0) };
@@ -2402,7 +2499,8 @@
             const pDesign = getPDesign();
             // Dokładnie ten sam silnik, co w ofercie PDF — ilości i ceny są spójne.
             const p = window.dxSizingParams();
-            const S = window.dxDzSizing(pDesign, p.cop, p.pumpKw, p.soilEff);
+            const S = window.dxDzSizing(pDesign, p.cop, p.pumpKw, p.soilEff,
+                                        p.soilWm2, p.soilWm, p.copWater, p.pumpKwWater);
 
             // S już uwzględnia ręczne nadpisania — karty i oferta czytają jedną liczbę.
             document.getElementById('dz-koszowe-input').value = S.kos;
@@ -2418,6 +2516,21 @@
             if (document.getElementById('dz-poziome-area')) {
                 document.getElementById('dz-poziome-area').textContent = S.pozArea;
             }
+
+            // Punkt pracy pod ilością. Producent publikuje tylko B0/W35 i W10/W35 —
+            // pozostałe punkty są przeliczeniem DEWAX i muszą być tak oznaczone,
+            // żeby nikt nie wziął ich za dane katalogowe.
+            const dzPoint = (id, t) => {
+                const el = document.getElementById('dz-' + id + '-point');
+                if(!el || !t) return;
+                el.textContent = t.label + ' · COP ' + t.copT.toFixed(2).replace('.', ',')
+                               + (t.fromCatalog ? '' : ' (przeliczenie DEWAX)');
+            };
+            dzPoint('koszowe',     S.tech.spirale);
+            dzPoint('pionowe',     S.tech.odwiert);
+            dzPoint('poziome',     S.tech.poziomy);
+            dzPoint('kolektorinw', S.tech.poziomy);
+            dzPoint('wodawoda',    S.tech.wodawoda);
 
             // Kolektor płaski — koparka Inwestora: cena ryczałtowa, metry tylko informacyjnie
             var kimg = document.getElementById('dz-kolektorinw-img');
@@ -4558,8 +4671,11 @@ function calcDz(pDesign, copPoint){
     let dzVal='', dzNote='', dzCost=0;
     // Ten sam silnik, co karty w kroku 4 (window.dxDzSizing) — bez rozjazdu cen.
     const P = (typeof window.dxSizingParams==='function') ? window.dxSizingParams() : {cop:copPoint||4, pumpKw:0, soilEff:0.7};
-    const cop = Math.max(copPoint || P.cop || 4, 1.5);
-    const S = window.dxDzSizing(pDesign, cop, P.pumpKw, P.soilEff);
+    // Kotwicą jest zawsze B0/W35 (P.cop) — copPoint zmienia się razem z zaznaczoną
+    // kartą, więc jako baza dla DZ_TECH przestawiałby ilości na pozostałych kartach.
+    const cop = Math.max(P.cop || copPoint || 4, 1.5);
+    const S = window.dxDzSizing(pDesign, cop, P.pumpKw, P.soilEff,
+                                P.soilWm2, P.soilWm, P.copWater, P.pumpKwWater);
     const cPB = S.cPB, cPP = S.cPP, reqZ = S.reqZ, soilEff = S.soilEff;
     if((typeof selectedDz!=='undefined'?selectedDz:'koszowe') === 'pionowe'){
       const m = S.pio;
@@ -4789,10 +4905,15 @@ function dxSoil(){
     return v>0;
   }
   function dzCalc(d){
-    const cop = Math.max(d.copPoint || d.scop || 4, 1.5);   // COP punktu pracy, nie SCOP
-    const pk = pumpPointKw(d.model, d);
+    // Kotwica B0/W35 z cennika (nie SCOP i nie COP zaznaczonej karty) — DZ_TECH
+    // przelicza z niej pozostałe technologie.
+    const P = (typeof window.dxSizingParams==='function') ? window.dxSizingParams() : null;
+    const cop = Math.max((P && P.cop) || d.copPoint || d.scop || 4, 1.5);
+    const pk = (P && P.pumpKw > 0) ? P.pumpKw : pumpPointKw(d.model, d);
     const soil = dxSoil();
-    const S = window.dxDzSizing(d.pDesign, cop, pk, soil.eff);
+    const S = window.dxDzSizing(d.pDesign, cop, pk, soil.eff,
+                                P ? P.soilWm2 : 0, P ? P.soilWm : 0,
+                                P ? P.copWater : 0, P ? P.pumpKwWater : 0);
     const cPB = S.cPB;                          // Q_dz wg budynku
     const cPP = S.cPP;                          // Q_dz wg pełnej mocy pompy
     const req = S.req;                          // bezpieczna wymagana moc chłodnicza
