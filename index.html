@@ -1215,7 +1215,7 @@
                             <input type="number" id="dz-pionowe-input" min="20" max="600" step="10" class="w-20 text-center text-lg font-black text-dewax-green bg-white border-2 border-emerald-200 rounded-lg p-1 outline-none" oninput="onDzQtyChange('pionowe')" onclick="event.stopPropagation()">
                             <span class="text-sm font-bold text-slate-500">mb</span>
                         </div>
-                        <p class="text-[10px] text-slate-500 font-bold">× 140 zł = <span id="dz-pionowe-cost" class="text-dewax-navy font-black">23 100</span> zł netto</p>
+                        <p class="text-[10px] text-slate-500 font-bold">× <span id="dz-pionowe-unit">140</span> zł = <span id="dz-pionowe-cost" class="text-dewax-navy font-black">23 100</span> zł netto</p>
                         <p class="text-[9px] text-slate-400 mt-1" id="dz-pionowe-point">—</p>
                     </div>
                 </div>
@@ -1230,7 +1230,7 @@
                             <input type="number" id="dz-poziome-input" min="50" max="2000" step="10" class="w-20 text-center text-lg font-black text-amber-600 bg-white border-2 border-amber-200 rounded-lg p-1 outline-none" oninput="onDzQtyChange('poziome')" onclick="event.stopPropagation()">
                             <span class="text-sm font-bold text-slate-500">mb rur</span>
                         </div>
-                        <p class="text-[10px] text-slate-500 font-bold">× 40 zł = <span id="dz-poziome-cost" class="text-dewax-navy font-black">16 500</span> zł netto</p>
+                        <p class="text-[10px] text-slate-500 font-bold">× <span id="dz-poziome-unit">40</span> zł = <span id="dz-poziome-cost" class="text-dewax-navy font-black">16 500</span> zł netto</p>
                         <p class="text-[9px] text-slate-400 mt-1">Pow. działki: ~<span id="dz-poziome-area">250</span> m²</p>
                         <p class="text-[9px] text-slate-400" id="dz-poziome-point">—</p>
                     </div>
@@ -1257,7 +1257,7 @@
                     <p class="text-[11px] text-slate-500 font-medium leading-relaxed mb-3">Koparka po stronie Inwestora · DEWAX: rury + podłączenie</p>
                     <div class="w-full bg-lime-50 rounded-xl p-3 border border-lime-100">
                         <div class="flex items-center justify-center gap-2 mb-1">
-                            <input type="number" id="dz-kolektorinw-input" min="0" max="200000" step="100" value="5000" class="w-24 text-center text-lg font-black text-lime-700 bg-white border-2 border-lime-200 rounded-lg p-1 outline-none" oninput="onDzFeeChange()" onclick="event.stopPropagation()">
+                            <input type="number" id="dz-kolektorinw-input" min="0" max="200000" step="100" class="w-24 text-center text-lg font-black text-lime-700 bg-white border-2 border-lime-200 rounded-lg p-1 outline-none" oninput="onDzFeeChange()" onclick="event.stopPropagation()">
                             <span class="text-sm font-bold text-slate-500">zł</span>
                         </div>
                         <p class="text-[10px] text-slate-500 font-bold">Ryczałt = <span id="dz-kolektorinw-cost" class="text-dewax-navy font-black">5 000</span> zł netto</p>
@@ -2236,13 +2236,26 @@
             }
         });
 
+        // ===== CENY JEDNOSTKOWE DOLNEGO ŹRÓDŁA =====
+        // Jedyne miejsce z cenami. Wcześniej te same liczby byly wpisane niezaleznie
+        // w czterech miejscach (karty, reczna zmiana ilosci, kosztorys kroku 4,
+        // generator oferty) — zmiana cennika wymagala trafienia we wszystkie cztery,
+        // a rozjazd byl niewidoczny az do wydruku oferty.
+        const DZ_PRICES = {
+            odwiertMb:    140,   // zł netto / mb odwiertu pionowego
+            kolektorMb:    40,   // zł netto / mb rury kolektora płaskiego
+            wodawoda:    3800,   // zł netto — wymiennik pośredni, ryczałt
+            kolektorInw: 5000    // zł netto — ryczałt, wykop po stronie Inwestora
+        };
+        window.DZ_PRICES = DZ_PRICES;
+
         // Ręczne nadpisania ilości dolnego źródła (null = auto)
         let dzOverride = { pionowe: null, poziome: null };
 
         // ===== KOLEKTOR PŁASKI — KOPARKA PO STRONIE INWESTORA =====
         // Model współpracy: Inwestor organizuje koparkę i wykop, DEWAX dostarcza
         // rury PE kolektora i wykonuje podłączenie. Cena ryczałtowa, edytowalna.
-        const DX_FLAT_FEE_DEFAULT = 5000;
+        const DX_FLAT_FEE_DEFAULT = DZ_PRICES.kolektorInw;
         window.dxFlatFee = function(){
             var el = document.getElementById('dz-kolektorinw-input');
             var v = el ? parseFloat(String(el.value).replace(',', '.')) : NaN;
@@ -2534,14 +2547,21 @@
             // S już uwzględnia ręczne nadpisania — karty i oferta czytają jedną liczbę.
             // Pionowe — wydajność W/mb wg wybranego gruntu (VDI 4640), zaokrąglenie w górę do 10
             document.getElementById('dz-pionowe-input').value = S.pio;
-            document.getElementById('dz-pionowe-cost').textContent = (S.pio * 140).toLocaleString('pl-PL');
+            document.getElementById('dz-pionowe-cost').textContent = (S.pio * DZ_PRICES.odwiertMb).toLocaleString('pl-PL');
 
             // Poziome — wydajność W/m² wg wybranego gruntu (VDI 4640) → m², potem mb rur (rozstaw 0.8m)
             document.getElementById('dz-poziome-input').value = S.poz;
-            document.getElementById('dz-poziome-cost').textContent = (S.poz * 40).toLocaleString('pl-PL');
+            document.getElementById('dz-poziome-cost').textContent = (S.poz * DZ_PRICES.kolektorMb).toLocaleString('pl-PL');
             if (document.getElementById('dz-poziome-area')) {
                 document.getElementById('dz-poziome-area').textContent = S.pozArea;
             }
+
+            // Ceny jednostkowe na kartach też z DZ_PRICES — statyczny tekst w HTML
+            // rozjechałby się z kosztorysem przy zmianie cennika.
+            const setTxt = (id, v) => { const e = document.getElementById(id); if(e) e.textContent = v; };
+            setTxt('dz-pionowe-unit', DZ_PRICES.odwiertMb.toLocaleString('pl-PL'));
+            setTxt('dz-poziome-unit', DZ_PRICES.kolektorMb.toLocaleString('pl-PL'));
+            setTxt('dz-wodawoda-cost', DZ_PRICES.wodawoda.toLocaleString('pl-PL'));
 
             // Punkt pracy pod ilością. Producent publikuje tylko B0/W35 i W10/W35 —
             // pozostałe punkty są przeliczeniem DEWAX i muszą być tak oznaczone,
@@ -2567,6 +2587,10 @@
             if(kmb) kmb.textContent = S.poz;
             var kar = document.getElementById('dz-kolektorinw-area');
             if(kar) kar.textContent = S.pozArea;
+            // Pole ryczałtu jest edytowalne — domyślną wartość bierzemy z DZ_PRICES,
+            // a nie z atrybutu value w HTML, żeby cennik miał jedno źródło.
+            var kin = document.getElementById('dz-kolektorinw-input');
+            if(kin && !String(kin.value).trim()) kin.value = DZ_PRICES.kolektorInw;
             var kc = document.getElementById('dz-kolektorinw-cost');
             if(kc) kc.textContent = window.dxFlatFee().toLocaleString('pl-PL');
 
@@ -2599,7 +2623,7 @@
             } else {
                 dzOverride[type] = null;
             }
-            const prices = { pionowe: 140, poziome: 40 };
+            const prices = { pionowe: DZ_PRICES.odwiertMb, poziome: DZ_PRICES.kolektorMb };
             const cost = val * prices[type];
             document.getElementById('dz-' + type + '-cost').textContent = cost.toLocaleString('pl-PL');
             // Widoczny sygnał, że ilość nie pochodzi już z automatu
@@ -3110,16 +3134,16 @@
             let dzCost = 0, dzLabel = '';
             if (selectedDz === 'poziome') {
                 const m = parseInt(document.getElementById('dz-poziome-input')?.value) || 0;
-                dzCost = m * 40; dzLabel = m + ' mb rur (Poziome)';
+                dzCost = m * DZ_PRICES.kolektorMb; dzLabel = m + ' mb rur (Poziome)';
             } else if (selectedDz === 'kolektorinw') {
-                dzCost = (typeof window.dxFlatFee === 'function') ? window.dxFlatFee() : 5000;
+                dzCost = (typeof window.dxFlatFee === 'function') ? window.dxFlatFee() : DZ_PRICES.kolektorInw;
                 dzLabel = 'Kolektor płaski — wykop Inwestora (ryczałt)';
             } else if (selectedDz === 'wodawoda') {
-                dzCost = 3800; dzLabel = 'Wymiennik woda-woda (ryczałt)';
+                dzCost = DZ_PRICES.wodawoda; dzLabel = 'Wymiennik woda-woda (ryczałt)';
             } else {
                 // odwiert pionowy — technologia domyślna
                 const m = parseInt(document.getElementById('dz-pionowe-input')?.value) || 0;
-                dzCost = m * 140; dzLabel = m + ' mb (Pionowe)';
+                dzCost = m * DZ_PRICES.odwiertMb; dzLabel = m + ' mb (Pionowe)';
             }
 
             const extrasBreakdown = getExtrasBreakdown();
@@ -3208,23 +3232,27 @@
             // Moc chłodnicza = moc grzewcza × (1 - 1/COP) — dynamicznie wg rzeczywistego COP
             const cP = pDesign * (1 - 1/scop);
             
+            // Wskaźniki gruntu z aktualnego wyboru — nie wolno ich tu zaszywać,
+            // bo rozjadą się z ilościami liczonymi w dxDzSizing().
+            const _R = window.dxSoilRates();
+            const _qf = (v) => String(Math.round(Number(v)*10)/10).replace('.', ',');
             if(selectedDz==='poziome'){
-                let areaCalc = Math.ceil((cP*1000)/20);
+                let areaCalc = Math.ceil((cP*1000)/_R.wm2);
                 let mbR = parseInt(document.getElementById('dz-poziome-input').value) || Math.ceil(areaCalc/COLLECTOR_SPACING);
-                dzVal=mbR+' mb rur (Poziome GWC)';dzCost=mbR*40;
-                dzNote=`Wydajność: 20 W/m² (PORT PC). Rozstaw rur: 0.8 m. Pow. działki: ~${areaCalc} m². Koszt: 40 zł netto/mb.`;
+                dzVal=mbR+' mb rur (Poziome GWC)';dzCost=mbR*DZ_PRICES.kolektorMb;
+                dzNote=`Wydajność: ${_qf(_R.wm2*COLLECTOR_SPACING)} W/mb = ${_qf(_R.wm2)} W/m² wg VDI 4640 cz. 2. Rozstaw rur: ${_qf(COLLECTOR_SPACING)} m. Pow. działki: ~${areaCalc} m². Koszt: ${DZ_PRICES.kolektorMb} zł netto/mb.`;
             } else if(selectedDz==='kolektorinw'){
-                var _mbK = parseInt(document.getElementById('dz-poziome-input').value) || Math.ceil(Math.ceil((cP*1000)/20)/COLLECTOR_SPACING);
+                var _mbK = parseInt(document.getElementById('dz-poziome-input').value) || Math.ceil(Math.ceil((cP*1000)/_R.wm2)/COLLECTOR_SPACING);
                 dzVal='Kolektor płaski — wykop po stronie Inwestora';
-                dzCost=(typeof window.dxFlatFee === 'function') ? window.dxFlatFee() : 5000;
+                dzCost=(typeof window.dxFlatFee === 'function') ? window.dxFlatFee() : DZ_PRICES.kolektorInw;
                 dzNote='Ryczałt: dostawa rur PE (ok. '+_mbK+' mb) i podłączenie. Wykop i zasypanie organizuje Inwestor.';
             } else if(selectedDz==='wodawoda'){
-                dzVal='Wymiennik pośredni (Woda-Woda)';dzCost=3800;
+                dzVal='Wymiennik pośredni (Woda-Woda)';dzCost=DZ_PRICES.wodawoda;
             } else {
                 // odwiert pionowy — technologia domyślna
-                let m = parseInt(document.getElementById('dz-pionowe-input').value) || Math.ceil((cP*1000)/40);
-                dzVal=m+' mb (Pionowe GWC)';dzCost=m*140;
-                dzNote=`Wydajność: 40 W/mb (wg PORT PC). Koszt: 140 zł netto/mb.`;
+                let m = parseInt(document.getElementById('dz-pionowe-input').value) || Math.ceil((cP*1000)/_R.wm);
+                dzVal=m+' mb (Pionowe GWC)';dzCost=m*DZ_PRICES.odwiertMb;
+                dzNote=`Wydajność: ${_qf(_R.wm)} W/mb wg VDI 4640 cz. 2. Koszt: ${DZ_PRICES.odwiertMb} zł netto/mb.`;
             }
 
             const _rdzv=document.getElementById('repDzValue'); if(_rdzv) _rdzv.innerText=dzVal;
@@ -4205,17 +4233,17 @@ thermokrafft.pl`;
             let dzCost=0, dzDesc='', dzTech='';
             if(selectedDz==='poziome'){
                 const m=parseInt(document.getElementById('dz-poziome-input').value)||0;
-                dzCost=m*40; dzDesc='Poziome GWC: '+m+' mb rur'; dzTech='kolektor płaski';
+                dzCost=m*DZ_PRICES.kolektorMb; dzDesc='Poziome GWC: '+m+' mb rur'; dzTech='kolektor płaski';
             } else if(selectedDz==='kolektorinw'){
-                dzCost=(typeof window.dxFlatFee === 'function') ? window.dxFlatFee() : 5000;
+                dzCost=(typeof window.dxFlatFee === 'function') ? window.dxFlatFee() : DZ_PRICES.kolektorInw;
                 dzDesc='Kolektor płaski — dostawa rur PE, rozdzielacza i armatury, ułożenie oraz połączenie z pompą ciepła, próba ciśnieniowa i napełnienie glikolem. Roboty ziemne (koparka, wykop, zasypanie i uporządkowanie terenu) po stronie Zamawiającego.';
                 dzTech='kolektor płaski (roboty ziemne po stronie Zamawiającego)';
             } else if(selectedDz==='wodawoda'){
-                dzCost=3800; dzDesc='Wymiennik pośredni woda-woda (z armaturą, filtracją, izolacją i montażem)'; dzTech='wymiennik pośredni (woda-woda)';
+                dzCost=DZ_PRICES.wodawoda; dzDesc='Wymiennik pośredni woda-woda (z armaturą, filtracją, izolacją i montażem)'; dzTech='wymiennik pośredni (woda-woda)';
             } else {
                 // odwiert pionowy — technologia domyślna
                 const m=parseInt(document.getElementById('dz-pionowe-input').value)||0;
-                dzCost=m*140; dzDesc='Pionowe GWC: '+m+' mb'; dzTech='kolektor pionowy';
+                dzCost=m*DZ_PRICES.odwiertMb; dzDesc='Pionowe GWC: '+m+' mb'; dzTech='kolektor pionowy';
             }
             const pumpPrice = selectedModelObj ? selectedModelObj.price : 0;
             const cwuPrice = 0; // CWU now included in extras
@@ -4682,6 +4710,9 @@ thermokrafft.pl`;
   const n2 = (v) => (Number(v)||0).toFixed(2).replace('.', ',');
 
   function getInput(id, fallback='') { return document.getElementById(id)?.value || fallback; }
+  // Wskaznik gruntu w tekscie: 43,3 ale 20 — bez zbednego ",0".
+  const qNum = (v) => String(Math.round(Number(v)*10)/10).replace('.', ',');
+  const qSp  = () => qNum(window.COLLECTOR_SPACING || 0.8);
 
 function calcDz(pDesign, copPoint){
     let dzVal='', dzNote='', dzCost=0;
@@ -4693,26 +4724,39 @@ function calcDz(pDesign, copPoint){
     const S = window.dxDzSizing(pDesign, cop, P.pumpKw,
                                 P.soilWm2, P.soilWm, P.copWater, P.pumpKwWater);
     const cPB = S.cPB, cPP = S.cPP, reqZ = S.reqZ;
+    // Wskaźniki gruntu podstawiamy realnie użyte (S.qA / S.qL). Zaszyte literały
+    // rozjeżdżały opis z wyliczeniem, gdy handlowiec zmienił grunt albo pobrał
+    // dane PIG-PIB — oferta mówiła 40 W/mb, a metry policzone były z innej liczby.
+    const qf = (v) => String(Math.round(Number(v)*10)/10).replace('.', ',');
+    const sp = window.COLLECTOR_SPACING || 0.8;
+    // Ryczałt = brak rozpoznania gruntu. Klient musi to zobaczyć w ofercie.
+    const ryczalt = (function(){
+      try{ return dxSoil().prov
+        ? ' Wartość ryczałtowa przy braku rozpoznania gruntu. Ostateczna długość wymaga potwierdzenia warunków gruntowo-wodnych.'
+        : ''; }catch(e){ return ''; }
+    })();
     if((typeof selectedDz!=='undefined'?selectedDz:'pionowe') === 'poziome'){
       const areaCalc = S.pozArea;
       const mb = S.poz;
-      dzVal = 'ok. ' + mb + ' mb rur - kolektor poziomy'; dzCost = mb * 40;
-      dzNote = 'Założenie: 20 W/m², rozstaw 0,8 m, ok. ' + areaCalc + ' m² wolnej działki; zależnie od gruntu i wilgotności.';
+      dzVal = 'ok. ' + mb + ' mb rur - kolektor poziomy'; dzCost = mb * window.DZ_PRICES.kolektorMb;
+      dzNote = mb + ' mb rury PE (ok. ' + areaCalc + ' m² powierzchni działki, rozstaw ' + qf(sp) + ' m, '
+             + qf(S.qA * sp) + ' W/mb = ' + qf(S.qA) + ' W/m² wg VDI 4640 cz. 2); zależnie od gruntu i wilgotności.' + ryczalt;
     } else if((typeof selectedDz!=='undefined'?selectedDz:'pionowe') === 'kolektorinw'){
       // Wykop po stronie Inwestora — DEWAX dostarcza rury i wykonuje podłączenie.
       dzVal = 'kolektor płaski - wykop po stronie Inwestora';
-      dzCost = (typeof window.dxFlatFee === 'function') ? window.dxFlatFee() : 5000;
+      dzCost = (typeof window.dxFlatFee === 'function') ? window.dxFlatFee() : window.DZ_PRICES.kolektorInw;
       dzNote = 'Zakres DEWAX: dostawa rur PE kolektora (ok. ' + S.poz + ' mb), rozdzielacz z armaturą, ułożenie i połączenie z pompą ciepła, próba ciśnieniowa i napełnienie glikolem. '
              + 'Wykop, zasypanie i uporządkowanie terenu organizuje Inwestor we własnym zakresie (koparka po stronie Inwestora). '
-             + 'Założenie: 20 W/m², rozstaw 0,8 m, ok. ' + S.pozArea + ' m² wolnej działki; wymagana moc chłodnicza z zapasem: '+reqZ.toFixed(1).replace('.',',')+' kW.';
+             + 'Założenie: ' + S.poz + ' mb rury PE (ok. ' + S.pozArea + ' m² powierzchni działki, rozstaw ' + qf(sp) + ' m, '
+             + qf(S.qA * sp) + ' W/mb = ' + qf(S.qA) + ' W/m² wg VDI 4640 cz. 2); wymagana moc chłodnicza z zapasem: '+reqZ.toFixed(1).replace('.',',')+' kW.' + ryczalt;
     } else if((typeof selectedDz!=='undefined'?selectedDz:'pionowe') === 'wodawoda'){
-      dzVal = 'Wymiennik pośredni - układ woda-woda'; dzCost = 3800;
+      dzVal = 'Wymiennik pośredni - układ woda-woda'; dzCost = window.DZ_PRICES.wodawoda;
       dzNote = 'Tylko wymiennik/układ pośredni; bez studni, pomp głębinowych, badań wody, pozwoleń i robót ziemnych.';
     } else {
       // odwiert pionowy — technologia domyślna
       const m = S.pio;
-      dzVal = 'ok. ' + m + ' mb - odwierty pionowe'; dzCost = m * 140;
-      dzNote = 'Założenie: 40 W/mb (dobór wstępny), 140 zł netto/mb, wymagana moc chłodnicza z zapasem: '+reqZ.toFixed(1).replace('.',',')+' kW.';
+      dzVal = 'ok. ' + m + ' mb - odwierty pionowe'; dzCost = m * window.DZ_PRICES.odwiertMb;
+      dzNote = 'Założenie: ' + qf(S.qL) + ' W/mb wg VDI 4640 cz. 2, ' + window.DZ_PRICES.odwiertMb + ' zł netto/mb, wymagana moc chłodnicza z zapasem: '+reqZ.toFixed(1).replace('.',',')+' kW.' + ryczalt;
     }
     return {dzVal,dzNote,dzCost};
   }
@@ -4993,19 +5037,19 @@ function dxSoil(){
   function dzLogicLine(d){
     const c = dzCalc(d);
     const base='Wymagana moc chłodnicza dolnego źródła: ok. '+n1(c.req)+' kW (większa z: '+n1(c.cPB)+' kW wg budynku i 90% × '+n1(c.cPP)+' kW wg pompy), z zapasem projektowym DEWAX 15%: ok. '+n1(c.reqZ)+' kW. ';
-    if(d.selectedDz==='poziome') return base+'Przyjęto ok. '+c.poz+' mb rur kolektora ('+c.qA+' W/m², rozstaw 0,8 m, ok. '+c.pozArea+' m² wolnej działki).';
-    if(d.selectedDz==='kolektorinw') return base+'Przyjęto ok. '+c.poz+' mb rur kolektora ('+c.qA+' W/m², rozstaw 0,8 m, ok. '+c.pozArea+' m² wolnej działki). Wykop wykonuje Inwestor; DEWAX dostarcza rury i wykonuje podłączenie w cenie ryczałtowej.';
+    if(d.selectedDz==='poziome') return base+'Przyjęto ok. '+c.poz+' mb rury PE (ok. '+c.pozArea+' m² powierzchni działki, rozstaw '+qSp()+' m, '+qNum(c.qA*(window.COLLECTOR_SPACING||0.8))+' W/mb = '+qNum(c.qA)+' W/m² wg VDI 4640 cz. 2).';
+    if(d.selectedDz==='kolektorinw') return base+'Przyjęto ok. '+c.poz+' mb rury PE (ok. '+c.pozArea+' m² powierzchni działki, rozstaw '+qSp()+' m, '+qNum(c.qA*(window.COLLECTOR_SPACING||0.8))+' W/mb = '+qNum(c.qA)+' W/m² wg VDI 4640 cz. 2). Wykop wykonuje Inwestor; DEWAX dostarcza rury i wykonuje podłączenie w cenie ryczałtowej.';
     if(d.selectedDz==='wodawoda') return base+'Do pokrycia wydajnością studni — wymaga badania wydajności i składu wody gruntowej.';
     // odwiert pionowy — technologia domyślna
-    return base+'Przyjęto ok. '+c.pio+' mb odwiertów × '+c.qL+' W/mb = '+n1(c.pio*c.qL/1000)+' kW (np. 1 × '+c.pio+' m lub 2 × '+Math.ceil(c.pio/2/10)*10+' m). Zapas względem wymaganej mocy chłodniczej: '+n1(c.zapasKw)+' kW ('+Math.round(c.zapasPct)+'%).';
+    return base+'Przyjęto ok. '+c.pio+' mb odwiertów × '+qNum(c.qL)+' W/mb wg VDI 4640 cz. 2 = '+n1(c.pio*c.qL/1000)+' kW (np. 1 × '+c.pio+' m lub 2 × '+Math.ceil(c.pio/2/10)*10+' m). Zapas względem wymaganej mocy chłodniczej: '+n1(c.zapasKw)+' kW ('+Math.round(c.zapasPct)+'%).';
   }
   function dzVariantsRows(d){
     const c = dzCalc(d);
     const V=[
-      {id:'pionowe', nazwa:'Odwierty pionowe', ilosc:'ok. '+c.pio+' mb', zaloz:'ok. '+c.qL+' W/mb (wg VDI 4640, do potwierdzenia badaniem gruntu), np. 1 × '+c.pio+' m lub 2 × '+Math.ceil(c.pio/2/10)*10+' m', koszt:c.pio*140},
-      {id:'poziome', nazwa:'Kolektor poziomy', ilosc:'ok. '+c.poz+' mb rur', zaloz:c.qA+' W/m² (VDI 4640), rozstaw 0,8 m, ok. '+c.pozArea+' m² wolnej działki bez zabudowy, kostki i drzew', koszt:c.poz*40},
-      {id:'kolektorinw', nazwa:'Kolektor płaski — wykop Inwestora', ilosc:'ok. '+c.poz+' mb rur', zaloz:'ryczałt DEWAX: dostawa rur PE, rozdzielacz, ułożenie i połączenie z pompą ciepła, próba ciśnieniowa, napełnienie glikolem; wykop i zasypanie organizuje Inwestor', koszt:((typeof window.dxFlatFee==='function')?window.dxFlatFee():5000)},
-      {id:'wodawoda', nazwa:'Woda-woda z wymiennikiem pośrednim', ilosc:'1 kpl.', zaloz:'koszt wyłącznie wymiennika/układu pośredniego — bez studni, pomp głębinowych, badań wody, pozwoleń i robót ziemnych', koszt:3800}
+      {id:'pionowe', nazwa:'Odwierty pionowe', ilosc:'ok. '+c.pio+' mb', zaloz:'ok. '+qNum(c.qL)+' W/mb (wg VDI 4640 cz. 2, do potwierdzenia badaniem gruntu), np. 1 × '+c.pio+' m lub 2 × '+Math.ceil(c.pio/2/10)*10+' m', koszt:c.pio*window.DZ_PRICES.odwiertMb},
+      {id:'poziome', nazwa:'Kolektor poziomy', ilosc:'ok. '+c.poz+' mb rur', zaloz:qNum(c.qA*(window.COLLECTOR_SPACING||0.8))+' W/mb = '+qNum(c.qA)+' W/m² (VDI 4640 cz. 2), rozstaw '+qSp()+' m, ok. '+c.pozArea+' m² wolnej działki bez zabudowy, kostki i drzew', koszt:c.poz*window.DZ_PRICES.kolektorMb},
+      {id:'kolektorinw', nazwa:'Kolektor płaski — wykop Inwestora', ilosc:'ok. '+c.poz+' mb rur', zaloz:'ryczałt DEWAX: dostawa rur PE, rozdzielacz, ułożenie i połączenie z pompą ciepła, próba ciśnieniowa, napełnienie glikolem; wykop i zasypanie organizuje Inwestor', koszt:((typeof window.dxFlatFee==='function')?window.dxFlatFee():window.DZ_PRICES.kolektorInw)},
+      {id:'wodawoda', nazwa:'Woda-woda z wymiennikiem pośrednim', ilosc:'1 kpl.', zaloz:'koszt wyłącznie wymiennika/układu pośredniego — bez studni, pomp głębinowych, badań wody, pozwoleń i robót ziemnych', koszt:window.DZ_PRICES.wodawoda}
     ];
     return V.map(function(v){
       const sel = v.id===d.selectedDz;
