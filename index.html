@@ -2383,6 +2383,14 @@
         };
         window.DZ_SIZING = DZ_SIZING;
 
+        // Rozstaw rur kolektora płaskiego [m]. Wiąże wskaźnik powierzchniowy
+        // z długością rury: q_mb = q_A × COLLECTOR_SPACING, czyli przy 20 W/m²
+        // wychodzi 16 W/mb. Kolektor wycenia się i zamawia w metrach rury, nie
+        // w metrach kwadratowych — powierzchnia jest tylko informacją, ile
+        // działki musi zostać wolne.
+        const COLLECTOR_SPACING = 0.8;
+        window.COLLECTOR_SPACING = COLLECTOR_SPACING;
+
         // ===== PARAMETRY PER TECHNOLOGIA =====
         // Każda technologia pracuje na innej temperaturze solanki, więc ma własny
         // punkt pracy i własne reqZ. Wcześniej wszystkie karty dzieliły jedno wspólne
@@ -2448,7 +2456,14 @@
             // mb rur z kolektora.
             var pio = Math.ceil(((tech.odwiert.reqZ * 1000) / qL) / 10) * 10;
             var pozArea = Math.ceil((tech.poziomy.reqZ * 1000) / qA);
-            var poz = Math.ceil((pozArea / 0.8) / 10) * 10;
+            // Wynikiem jest DŁUGOŚĆ RURY w mb; powierzchnia to wielkość pośrednia.
+            // Równoważnie: q_mb = q_A × COLLECTOR_SPACING (przy 20 W/m² → 16 W/mb),
+            // czyli poz = reqZ × 1000 / q_mb. Sprawdzone arytmetyką dokładną dla
+            // wszystkich q_A, jakie kreator może wystawić (10 / 20 / 24 / 32 W/m²):
+            // oba zapisy dają identyczny wynik, więc wzór zostaje w tej postaci —
+            // pośredni ceil na m² zaokrągla powierzchnię do pełnego metra, co jest
+            // tym, co handlowiec podaje klientowi.
+            var poz = Math.ceil((pozArea / COLLECTOR_SPACING) / 10) * 10;
             // req/reqZ na najwyższym poziomie dotyczą AKTUALNIE wybranej technologii —
             // czytają je opis doboru, kontrola i oferta.
             var selTech = window.dxTechOf(typeof selectedDz !== 'undefined' ? selectedDz : 'pionowe');
@@ -2460,7 +2475,7 @@
             var ov = (typeof dzOverride !== 'undefined' && dzOverride) ? dzOverride : {};
             var pioE = (ov.pionowe > 0) ? parseInt(ov.pionowe, 10) : pio;
             var pozE = (ov.poziome > 0) ? parseInt(ov.poziome, 10) : poz;
-            var pozAreaE = (ov.poziome > 0) ? Math.round(pozE * 0.8) : pozArea;
+            var pozAreaE = (ov.poziome > 0) ? Math.round(pozE * COLLECTOR_SPACING) : pozArea;
             return { cPB: cPB, cPP: cPP, req: req, reqZ: reqZ, qA: qA, qL: qL,
                      tech: tech, selTech: selTech, pHeatBase: pHeatBase,
                      pio: pioE, pozArea: pozAreaE, poz: pozE,
@@ -2555,7 +2570,7 @@
                 var kar = document.getElementById('dz-kolektorinw-area');
                 if(val > 0){
                     if(kmb) kmb.textContent = val;
-                    if(kar) kar.textContent = Math.round(val * 0.8);
+                    if(kar) kar.textContent = Math.round(val * COLLECTOR_SPACING);
                 } else if(typeof updateDzCards === 'function'){ updateDzCards(); }
             }
         }
@@ -3155,11 +3170,11 @@
             
             if(selectedDz==='poziome'){
                 let areaCalc = Math.ceil((cP*1000)/20);
-                let mbR = parseInt(document.getElementById('dz-poziome-input').value) || Math.ceil(areaCalc/0.8);
+                let mbR = parseInt(document.getElementById('dz-poziome-input').value) || Math.ceil(areaCalc/COLLECTOR_SPACING);
                 dzVal=mbR+' mb rur (Poziome GWC)';dzCost=mbR*40;
                 dzNote=`Wydajność: 20 W/m² (PORT PC). Rozstaw rur: 0.8 m. Pow. działki: ~${areaCalc} m². Koszt: 40 zł netto/mb.`;
             } else if(selectedDz==='kolektorinw'){
-                var _mbK = parseInt(document.getElementById('dz-poziome-input').value) || Math.ceil(Math.ceil((cP*1000)/20)/0.8);
+                var _mbK = parseInt(document.getElementById('dz-poziome-input').value) || Math.ceil(Math.ceil((cP*1000)/20)/COLLECTOR_SPACING);
                 dzVal='Kolektor płaski — wykop po stronie Inwestora';
                 dzCost=(typeof window.dxFlatFee === 'function') ? window.dxFlatFee() : 5000;
                 dzNote='Ryczałt: dostawa rur PE (ok. '+_mbK+' mb) i podłączenie. Wykop i zasypanie organizuje Inwestor.';
