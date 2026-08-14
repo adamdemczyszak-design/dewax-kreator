@@ -2400,6 +2400,20 @@
         // który jest kotwicą doboru. Producent nie publikuje B-3/W35, więc wartość dla
         // kolektora jest przeliczeniem DEWAX, nie daną katalogową (oznaczane w ofercie).
         // Woda-woda ma własny opublikowany punkt W10/W35.
+        // UWAGA — copFactor 0,90 i 1,15 to ZAŁOŻENIA DEWAX, nie dane z karty
+        // katalogowej producenta. Podstawa merytoryczna: kolektor poziomy pracuje
+        // przy niższej temperaturze solanki niż odwiert (płytsza warstwa gruntu,
+        // silniejsze wychłodzenie w sezonie), a układ woda-woda przy wyższej.
+        // Producent publikuje wyłącznie B0/W35 i W10/W35 — punktów B-3/W35 nie ma
+        // w cenniku i nie da się ich stamtąd odczytać.
+        //
+        // SKUTEK ZMIANY, zmierzony na katalogu TK: copFactor 0,90 daje 3,21%
+        // różnicy w reqZ — stałe, niezależne od pDesign, bo mnożnik wchodzi tylko
+        // przez (COP-1)/COP. Na metrach kolektora, dla pDesign 3–25 kW: różnica
+        // 0 mb w 4% przypadków, 10 mb w 27%, 20 mb w 59%, 30 mb w 10%. Czyli
+        // w 96% przypadków ta liczba zmienia wynik, typowo o 20 mb — przy 40 zł/mb
+        // to 400–1200 zł w ofercie klienta.
+        // NIE ZMIENIAĆ bez podstawy w danych producenta albo we własnym pomiarze.
         const DZ_TECH = {
             odwiert:  { copFactor: 1.00, label: 'B0/W35',  dz: 'pionowe' },
             poziomy:  { copFactor: 0.90, label: 'B-3/W35', dz: 'poziome' },
@@ -2411,25 +2425,51 @@
                              kolektorinw:'poziomy', wodawoda:'wodawoda' };
         window.dxTechOf = function(dz){ return DZ_TECH_OF[dz] || 'odwiert'; };
 
+        // Moc grzewcza, od której liczone jest dolne źródło. Trzy człony:
+        //
+        //   pDesign                        podłoga — budynku nie da się nie pokryć
+        //   pumpShare        × pumpKw      udział mocy pompy
+        //   PUMP_FOLLOW_CAP  × pDesign     sufit: źródło nie podąża za pompą w nieskończoność
+        //
+        // Sufit istnieje dlatego, że pompa dobrana z zapasem (m.in. na szczyt
+        // ładowania CWU) nie pracuje mocą szczytową w sezonie grzewczym — źródło
+        // projektujemy na obciążenie sezonowe, a nie na chwilowe maksimum sprężarki.
+        //
+        // KTÓRY CZŁON WIĄŻE — zmierzone na katalogu TK, nie oszacowane. Progi:
+        //   pompa przebija sufit     przy pDesign > (0,9/1,15) × kW = 0,7826 × kW
+        //   podłoga przebija pompę   przy pDesign > 0,9 × kW
+        // Model jest wybierany jako najsłabszy o mocy ≥ pDesign, więc każde okno
+        // doboru dzieli się na trzy odcinki:
+        //
+        //   TK-G2S   7,74 kW   okno 0,00–7,74    sufit 0,00–6,06   pompa 6,06–6,97   podłoga 6,97–7,74
+        //   TK-G3S   9,15 kW   okno 7,74–9,15    sufit —           pompa 7,74–8,24   podłoga 8,24–9,15
+        //   TK-G5S  12,67 kW   okno 9,15–12,67   sufit 9,15–9,92   pompa 9,92–11,40  podłoga 11,40–12,67
+        //   TK-G6S  16,21 kW   okno 12,67–16,21  sufit 12,67–12,69 pompa 12,69–14,59 podłoga 14,59–16,21
+        //
+        // W całym zakresie 0–16,21 kW: sufit 42,2%, pompa 29,6%, podłoga 28,2%.
+        // Człon z pompą NIE jest zabezpieczeniem brzegowym — wiąże na blisko jednej
+        // trzeciej zakresu. Przypadek handlowo istotny: dla TK-G3S sufit nie wiąże
+        // ANI RAZU w całym oknie doboru (7,74–9,15 kW), bo całe to okno leży powyżej
+        // progu 0,7826 × 9,15 = 7,16 kW. Przy tej pompie o wielkości dolnego źródła
+        // decyduje wyłącznie jej moc albo moc budynku.
+        //
+        // Liczone na mocy GRZEWCZEJ, bo podział przez (COP-1)/COP robimy niżej,
+        // osobno dla każdej technologii — sufit sam w sobie nie zależy od COP.
+        window.dxPBase = function(pDesign, pumpKw){
+            var kw = (pumpKw > 0) ? pumpKw : pDesign;
+            return Math.max(pDesign,
+                Math.min(kw * DZ_SIZING.pumpShare,
+                         pDesign * DZ_SIZING.PUMP_FOLLOW_CAP));
+        };
+
         window.dxDzSizing = function(pDesign, cop, pumpKw, soilWm2, soilWm, copWater, pumpKwWater){
             var c  = Math.max(cop || 4, 1.5);       // kotwica: COP B0/W35 z cennika
             var pk = (pumpKw > 0) ? pumpKw : pDesign;
             var cPB  = pDesign * (c - 1) / c;      // moc chłodnicza wymagana przez budynek
             var cPP  = pk * (c - 1) / c;           // moc chłodnicza przy pełnej mocy pompy
-            // Ogranicznik nadmiaru pompy. Sam człon 0,9 × cPP powodował, że pompa
-            // dobrana z zapasem (m.in. na szczyt ładowania CWU) rozdmuchiwała dolne
-            // źródło ponad realną potrzebę budynku. Pompa z takim zapasem nie pracuje
-            // mocą szczytową w sezonie grzewczym — źródło projektujemy na obciążenie
-            // sezonowe, a nie na chwilowe maksimum sprężarki. Stąd sufit 115% mocy
-            // budynku. Liczone na mocy GRZEWCZEJ, bo dopiero niżej dzielimy je przez
-            // (COP-1)/COP osobno dla każdej technologii — sufit sam w sobie nie zależy
-            // od COP. Wynik dla kotwicy jest identyczny jak przy liczeniu na chłodniczej.
-            function heatBase(kw){
-                return Math.max(pDesign,
-                    Math.min((kw > 0 ? kw : pDesign) * DZ_SIZING.pumpShare,
-                             pDesign * DZ_SIZING.PUMP_FOLLOW_CAP));
-            }
-            var pHeatBase = heatBase(pk);
+            // Ogranicznik nadmiaru pompy — patrz dxPBase() wyżej, tam pomiar
+            // pokazujący, który człon wiąże przy której pompie.
+            var pHeatBase = window.dxPBase(pDesign, pk);
             // Woda-woda: pompa oddaje w W10/W35 inną moc niż w B0/W35, więc sufit
             // liczymy od jej własnej wydajności.
             var pkWater = (pumpKwWater > 0) ? pumpKwWater : pk;
@@ -2445,10 +2485,10 @@
                 // Woda-woda ma własny opublikowany punkt pracy — nie przeliczamy go z B0/W35.
                 var copT = (k === 'wodawoda' && copWater > 0) ? copWater : c * T.copFactor;
                 copT = Math.max(copT, 1.5);
-                var hb = (k === 'wodawoda') ? heatBase(pkWater) : pHeatBase;
+                var hb = (k === 'wodawoda') ? window.dxPBase(pDesign, pkWater) : pHeatBase;
                 var reqT  = hb * (copT - 1) / copT;
                 var reqZT = reqT * DZ_SIZING.GROUND_UNCERTAINTY;
-                tech[k] = { copT: copT, label: T.label, hours: T.hours,
+                tech[k] = { copT: copT, label: T.label,
                             fromCatalog: (k === 'odwiert') || (k === 'wodawoda' && copWater > 0),
                             req: reqT, reqZ: reqZT };
             });
