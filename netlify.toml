@@ -1,0 +1,8 @@
+# Konfiguracja Netlify dla dewax-kreator.
+#
+# Celowo nie ma tu sekcji [build] — katalog publikacji pozostaje taki,
+# jaki jest ustawiony w panelu. Ten plik dodaje wyłącznie bramę logowania.
+
+[[edge_functions]]
+  path = "/*"
+  function = "auth"
