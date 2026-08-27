@@ -1881,6 +1881,7 @@
             // Dane z URL-a to nowy klient — nie dziedziczymy ID kontaktu po poprzednim leadzie
             window.currentLeadHsId = null;
             window.dxLastDealKey = null;
+            window.dxLastDealId = null;
             if(p.has('imie')) document.getElementById('leadName').value = p.get('imie');
             if(p.has('tel')) document.getElementById('leadPhone').value = p.get('tel');
             if(p.has('email')) document.getElementById('leadEmail').value = p.get('email');
@@ -3860,13 +3861,22 @@
                 const key = contactId + '|' + dealname + '|' + amount;
                 if (window.dxLastDealKey === key) { dxHsStatus('HubSpot: ta transakcja została już zapisana.', true); return true; }
 
+                // Właściciela wysyłamy już przy tworzeniu transakcji. Wcześniej
+                // ustawiał go dopiero PATCH po wyszukaniu transakcji po nazwie,
+                // a indeks wyszukiwania HubSpota nie widzi świeżo utworzonego
+                // obiektu przez kilka sekund — stąd „transakcja zapisana, ale
+                // nie udało się jej odnaleźć". Przy tworzeniu indeks nie gra roli.
+                const ownerId = (typeof window.dxOwnerId === 'function') ? window.dxOwnerId() : '';
+                const props = { dealname: dealname, amount: amount, deal_currency_code: 'PLN' };
+                if (ownerId) props.hubspot_owner_id = ownerId;
                 const payload = {
                     contactId: contactId,
                     dealname: dealname,
                     amount: amount,
                     deal_currency_code: 'PLN',
-                    properties: { dealname: dealname, amount: amount, deal_currency_code: 'PLN' }
+                    properties: props
                 };
+                if (ownerId) payload.hubspot_owner_id = ownerId;
                 const res = await dxApiFetch(LEADS.hubspotProxy + '/deal', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -3874,11 +3884,20 @@
                 });
                 const txt = await res.text().catch(() => '');
                 if (!res.ok) {
+                    window.dxLastDealId = null;
                     dxHsStatus('HubSpot: transakcja NIE została utworzona (HTTP ' + res.status + '). ' + String(txt).slice(0, 200), false);
                     if (typeof showToast === 'function') showToast('⚠️', 'HubSpot', 'Transakcja nie trafiła do HubSpota (HTTP ' + res.status + ').', 8000);
                     return false;
                 }
                 window.dxLastDealKey = key;
+                // ID prosto z odpowiedzi — bez zgadywania i bez czekania na indeks.
+                window.dxLastDealId = (function(){
+                    try {
+                        const j = JSON.parse(txt);
+                        const id = j && (j.id || (j.deal && j.deal.id) || (j.result && j.result.id));
+                        return id ? String(id) : null;
+                    } catch (e) { return null; }
+                })();
                 dxHsStatus('HubSpot: transakcja zapisana — ' + dealname + (amount ? ' · ' + Number(amount).toLocaleString('pl-PL') + ' zł brutto' : ''), true);
                 if (typeof showToast === 'function') showToast('✅', 'HubSpot', 'Transakcja zapisana w HubSpocie.', 4000);
                 return true;
@@ -3897,6 +3916,7 @@
             if (e.isTrusted && /^(leadName|leadPhone|leadEmail|leadAddress)$/.test(id)) {
                 window.currentLeadHsId = null;
                 window.dxLastDealKey = null;
+                window.dxLastDealId = null;
             }
         });
 
@@ -5190,7 +5210,7 @@ function dxSoil(){
     const img = pumpImage(d.model);
     const pRow = powerRow(d.model);
     const email = 'Dzień dobry,\n\nw załączniku przesyłam ofertę na kompletny system gruntowej pompy ciepła Thermokrafft dla inwestycji: '+(d.client.address!=='—'?d.client.address:'Państwa budynek')+'.\n\nOferta obejmuje pompę ciepła, dolne źródło oraz montaż z uruchomieniem. Oferta wstępna — wymaga potwierdzenia po wizji lokalnej. Ważna '+d.validityDays+' dni.\n\nW razie pytań pozostaję do dyspozycji.\n\nZ poważaniem\nDEWAX Engineering\n+48 506 002 684 | biuro@dewax.pl';
-    return `<div class="tk-toolbar no-print"><div><div class="tk-toolbar-title">Oferta DEWAX — podgląd</div><div class="tk-toolbar-sub">Sprawdź treść i dane klienta, a następnie wyślij ofertę jednym kliknięciem.</div><div class="tk-toolbar-sub no-print" id="dxHubspotStatus" style="display:none;margin-top:6px;font-weight:700;"></div></div><div class="tk-toolbar-actions"><button class="tk-btn tk-btn-secondary" onclick="goToStep(4)">Edytuj kosztorys</button><button class="tk-btn tk-btn-secondary" onclick="dxPrintOffer()">Drukuj</button><button class="tk-btn tk-btn-primary" onclick="dxSavePdf(this)">Zapisz PDF</button><button class="tk-btn tk-btn-green" onclick="generatePdfAndOpenEmail()" id="btnSendOffer">Wyślij ofertę</button></div></div><div class="tk-doc" id="cleanOfferDoc">
+    return `<div class="tk-toolbar no-print"><div><div class="tk-toolbar-title">Oferta DEWAX — podgląd</div><div class="tk-toolbar-sub">Sprawdź treść i dane klienta, a następnie wyślij ofertę jednym kliknięciem.</div><div class="tk-toolbar-sub no-print" id="dxHubspotStatus" style="display:none;margin-top:6px;font-weight:700;"></div></div><div class="tk-toolbar-actions"><button class="tk-btn tk-btn-secondary" onclick="goToStep(4)">Edytuj kosztorys</button><button class="tk-btn tk-btn-secondary" onclick="dxPrintOffer()">Drukuj</button><button class="tk-btn tk-btn-primary" onclick="dxSavePdf(this)">Zapisz PDF</button><button class="tk-btn tk-btn-secondary" onclick="dxDiagnostyka()" title="Sprawdza połączenie z HubSpotem i wysyłką maili">Sprawdź połączenie</button><button class="tk-btn tk-btn-green" onclick="generatePdfAndOpenEmail()" id="btnSendOffer">Wyślij ofertę</button></div></div><div class="tk-doc" id="cleanOfferDoc">
 
 <section class="tk-page" data-page="1">${dxTopbar('Gruntowe pompy ciepła · Thermokrafft', d, 'Karta doboru / Oferta')}<div class="tk-page-inner dx-flow">
 <div class="dx-client-grid"><div class="dx-card dx-card-accent"><div class="dx-label">Oferta dla</div><div class="dx-client-name">${esc(d.client.name)}</div><div class="dx-line">${esc(d.client.phone)} · ${esc(d.client.email)}</div></div><div class="dx-card"><div class="dx-label">Inwestycja</div><div class="dx-client-name" style="font-size:13px;">${esc(invTitle(d))}</div><div class="dx-line">${esc(d.area)} m² · ${esc(d.heating)}</div><div class="dx-line" style="margin-top:3px;">${esc(insLine(d))}</div></div></div>
@@ -5232,7 +5252,7 @@ ${(function(){const sc=dxDzScope(d); if(!sc) return ''; return '<div class="dx-2
 <div class="dx-footer"><div class="dx-footer-t">Zainwestuj w ciepło, które się zwraca</div><div class="dx-footer-s">Gruntowa pompa ciepła Thermokrafft — dobór, dolne źródło, montaż i serwis w jednej firmie.</div><div class="dx-footer-c"><span>+48 506 002 684</span><span>biuro@dewax.pl</span><span>www.pompy.dewax.pl</span></div></div>
 <div class="tk-page-no">4 / 4</div></div></section>
 
-</div><div class="tk-email-box no-print"><h3 style="margin-bottom:10px;color:#0B3553!important;">Treść wiadomości e-mail</h3><textarea id="emailBody">${esc(email)}</textarea><p id="sendStatus" style="font-size:11px;color:#69788A;margin-top:8px;font-weight:700;"></p></div>`;
+</div><div class="tk-email-box no-print"><h3 style="margin-bottom:10px;color:#0B3553!important;">Treść wiadomości e-mail</h3><textarea id="emailBody">${esc(email)}</textarea><p id="sendStatus" style="font-size:11px;color:#69788A;margin-top:8px;font-weight:700;"></p><div id="dxDeliveryBox" class="no-print" style="margin-top:10px;"></div></div>`;
   }
 
   window.generateReport = function(){
@@ -5431,11 +5451,28 @@ ${(function(){const sc=dxDzScope(d); if(!sc) return ''; return '<div class="dx-2
         throw new Error(przyczyna);
       }
 
-      // === SUKCES ===
+      // === PRZYJĘTE DO WYSYŁKI ===
+      // Świadomie NIE piszemy tu „wysłana". Worker potwierdza tylko tyle, że
+      // przyjął zlecenie — czy list doszedł do skrzynki klienta, wie dopiero
+      // dostawca. Handlowcy meldowali, że kreator mówi „wysłane", a klient nic
+      // nie dostaje; ten komunikat ma nie wyprzedzać faktów.
       if (typeof syncDealToHubSpot === 'function') { try { await syncDealToHubSpot(offerData.clientName); } catch(_e){} }
-      setStatus('Oferta została wysłana na adres: ' + offerData.clientEmail);
-      if(typeof showToast === 'function') showToast('✅','Oferta wysłana','Oferta została wysłana na adres: ' + offerData.clientEmail, 6000);
-      setBtn('Oferta wysłana', true);
+      const wysylkaId = (json && (json.id || json.messageId || (json.data && json.data.id))) || '';
+      if (window.DX_DORECZENIA) {
+        DX_DORECZENIA.zapisz({
+          id: String(wysylkaId || ''),
+          email: offerData.clientEmail,
+          klient: offerData.clientName,
+          oferta: offerData.offerNumber,
+          dealId: window.dxLastDealId || '',
+          czas: new Date().toISOString(),
+          status: 'przyjete'
+        });
+        DX_DORECZENIA.sledz(String(wysylkaId || ''));
+      }
+      setStatus('Oferta przekazana do wysyłki na ' + offerData.clientEmail + '. Sprawdzam doręczenie…');
+      if(typeof showToast === 'function') showToast('📤','Oferta poszła','Przekazana do wysyłki na ' + offerData.clientEmail + '. Potwierdzenie doręczenia pojawi się poniżej.', 6000);
+      setBtn('Przekazana do wysyłki', true);
       setTimeout(()=>setBtn('Wyślij ofertę', false), 4000);
     }catch(e){
       // === BŁĄD: konkretny komunikat + fallback TYLKO na życzenie (przycisk), bez Gmaila ===
@@ -7125,12 +7162,45 @@ html, body { -webkit-text-size-adjust: 100% !important; -moz-text-size-adjust: 1
   var HS = 'https://dewax-hubspot.adam-demczyszak.workers.dev';
   var KEY = 'dewax_owner';
 
-  // Identyfikatory z HubSpota — te same, których używał Asystent Handlowca.
+  /* Lista handlowców.
+
+     Poprzednie identyfikatory były przestawione: 76509862 podpisane jako
+     „Romana Wojnowska" to w HubSpocie Adam Demczyszak, a 79652341 („Adam
+     Demczyszak") w portalu nie istnieje. Wybranie „Adama" wysyłało więc
+     nieistniejące ID i HubSpot odrzucał przypisanie, a wybranie „Romany"
+     przypisywało transakcję Adamowi.
+
+     Poniższa lista to awaryjny fallback, zweryfikowany w portalu 49004516.
+     Właściwa lista pobierana jest z HubSpota przy starcie (GET /owners) —
+     dzięki temu nowy handlowiec pojawia się w kreatorze bez zmiany kodu. */
   var OWNERS = [
-    { id:'76509862', imie:'Romana Wojnowska' },
-    { id:'79601430', imie:'Małgorzata Kuś' },
-    { id:'79652341', imie:'Adam Demczyszak' }
+    { id:'76509862', imie:'Adam Demczyszak' },
+    { id:'79601430', imie:'Małgorzata Kuś' }
   ];
+
+  /* Pobranie aktywnych właścicieli z HubSpota. Gdy worker nie obsługuje
+     jeszcze /owners, zostaje lista awaryjna — kreator działa dalej. */
+  function loadOwners(){
+    if(typeof window.dxApiFetch !== 'function') return Promise.resolve(false);
+    return window.dxApiFetch(HS + '/owners', { method:'GET' })
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(j){
+        var rs = j && (j.results || j.owners || (Array.isArray(j) ? j : null));
+        if(!rs || !rs.length) return false;
+        var lista = [];
+        for(var i=0;i<rs.length;i++){
+          var o = rs[i];
+          if(o.archived || o.isActive === false) continue;
+          var id = o.id || o.ownerId;
+          var imie = (o.name || ((o.firstName||'') + ' ' + (o.lastName||''))).trim() || o.email || '';
+          if(id && imie) lista.push({ id:String(id), imie:imie });
+        }
+        if(!lista.length) return false;
+        OWNERS = lista;
+        return true;
+      })
+      .catch(function(){ return false; });
+  }
 
   function el(id){ return document.getElementById(id); }
 
@@ -7169,6 +7239,19 @@ html, body { -webkit-text-size-adjust: 100% !important; -moz-text-size-adjust: 1
     sel.addEventListener('change', function(){ save(sel.value); });
   }
 
+  /* Po pobraniu listy z HubSpota podmieniamy opcje, zachowując wybór. */
+  function refreshPicker(){
+    var sel = el('dxOwner');
+    if(!sel) return;
+    var wybrany = sel.value || saved();
+    sel.innerHTML = '<option value="">— wybierz handlowca —</option>'
+      + OWNERS.map(function(o){ return '<option value="'+o.id+'">'+o.imie+'</option>'; }).join('');
+    // Zapisany wcześniej handlowiec mógł zniknąć z HubSpota — wtedy nie
+    // udajemy, że nadal jest wybrany, tylko wracamy do pustego pola.
+    sel.value = wybrany;
+    if(sel.value !== wybrany) save('');
+  }
+
   /* ---------------- przypisanie po utworzeniu ---------------- */
 
   function ownerId(){
@@ -7182,7 +7265,13 @@ html, body { -webkit-text-size-adjust: 100% !important; -moz-text-size-adjust: 1
     return '';
   }
 
-  /** Odnajduje świeżo utworzoną transakcję po nazwie. */
+  // syncDealToHubSpot wkłada to ID już do żądania tworzącego transakcję.
+  window.dxOwnerId = ownerId;
+  window.dxOwnerName = ownerName;
+
+  /** Odnajduje transakcję po nazwie. Plan B — używany tylko wtedy, gdy worker
+      nie zwrócił ID przy tworzeniu. Indeks wyszukiwania HubSpota potrzebuje
+      kilku sekund na zobaczenie nowego obiektu, stąd ponawianie w findDeal(). */
   function findDealByName(dealname){
     return (window.dxApiFetch || fetch)(HS + '/deals-search', {
       method:'POST',
@@ -7199,6 +7288,21 @@ html, body { -webkit-text-size-adjust: 100% !important; -moz-text-size-adjust: 1
         return (rs && rs.length) ? rs[0].id : null;
       })
       .catch(function(){ return null; });
+  }
+
+  /** ID transakcji: najpierw to zwrócone przy tworzeniu, dopiero potem
+      wyszukiwanie z trzema podejściami co 1,5 s (indeks HubSpota jest
+      opóźniony i pierwsze zapytanie zwykle nic nie zwraca). */
+  function findDeal(dealname){
+    if(window.dxLastDealId) return Promise.resolve(String(window.dxLastDealId));
+    var proby = [0, 1500, 1500];
+    function podejscie(i){
+      if(i >= proby.length) return Promise.resolve(null);
+      return new Promise(function(res){ setTimeout(res, proby[i]); })
+        .then(function(){ return findDealByName(dealname); })
+        .then(function(id){ return id || podejscie(i + 1); });
+    }
+    return podejscie(0);
   }
 
   function setOwner(dealId, id){
@@ -7233,17 +7337,24 @@ html, body { -webkit-text-size-adjust: 100% !important; -moz-text-size-adjust: 1
 
         var id = ownerId();
         if(!id){
-          status('HubSpot: transakcja zapisana, ale BEZ właściciela — wybierz handlowca w polu „Ofertę wystawia", '
-                 + 'inaczej nie pojawi się na jego liście leadów.', false);
+          // Brak handlowca to nie awaria: transakcja jest w HubSpocie i widzi
+          // ją każdy, kto ma dostęp do wszystkich transakcji. Właściciel służy
+          // wyłącznie do tego, żeby wpadła też na jego własną listę.
+          status('HubSpot: transakcja zapisana (bez przypisanego handlowca — '
+                 + 'widoczna dla całego zespołu). Wybierz osobę w polu „Ofertę wystawia", '
+                 + 'jeśli ma trafić też na jej listę.', true);
           return okCreated;
         }
 
         var dealname = expectedDealName();
         if(!dealname) return okCreated;
 
-        return findDealByName(dealname).then(function(dealId){
+        return findDeal(dealname).then(function(dealId){
           if(!dealId){
-            status('HubSpot: transakcja zapisana, ale nie udało się jej odnaleźć, żeby przypisać właściciela.', false);
+            // Właściciel poszedł już w żądaniu tworzącym transakcję, więc brak
+            // ID oznacza tylko tyle, że nie potrafimy tego potwierdzić.
+            status('HubSpot: transakcja zapisana i przypisana do ' + ownerName()
+                   + ' (nie udało się potwierdzić — sprawdź w HubSpocie).', true);
             return okCreated;
           }
           return setOwner(dealId, id).then(function(ok){
@@ -7259,6 +7370,8 @@ html, body { -webkit-text-size-adjust: 100% !important; -moz-text-size-adjust: 1
 
   function boot(){
     injectPicker();
+    // Lista handlowców prosto z HubSpota — kod trzyma tylko awaryjny fallback.
+    loadOwners().then(function(pobrano){ if(pobrano) refreshPicker(); });
     var st1 = el('step1');
     if(st1 && window.MutationObserver){
       new MutationObserver(function(){ injectPicker(); }).observe(st1, {childList:true, subtree:true});
@@ -7278,6 +7391,397 @@ html, body { -webkit-text-size-adjust: 100% !important; -moz-text-size-adjust: 1
 })();
 </script>
 <!-- DEWAX-WLASCICIEL koniec -->
+<!-- DEWAX-DORECZENIA start ==========================================
+     Potwierdzenie doręczenia oferty i diagnostyka połączeń.
+
+     Powód powstania: handlowcy meldowali, że kreator pisze „oferta wysłana",
+     a klient maila nie dostaje. Kreator nie miał jak tego wykryć — kończył
+     pracę na odpowiedzi workera, która mówi tylko tyle, że worker przyjął
+     zlecenie. Czy list trafił do skrzynki, wie dopiero dostawca poczty.
+
+     Moduł robi trzy rzeczy:
+       1. prowadzi kronikę wysyłek w localStorage (co, do kogo, kiedy),
+       2. odpytuje workera o status doręczenia (GET /status/{id}),
+       3. daje przycisk „Sprawdź połączenie", który sprawdza obie bramki
+          i pisze, co dokładnie nie działa.
+
+     Punkt 2 wymaga endpointu /status/{id} w workerze dewax-send.
+     Gotowy kod jest w worker/dewax-send.js, opis w DIAGNOSTYKA.md.
+     Do czasu wdrożenia kreator pokazuje kronikę bez potwierdzeń i mówi
+     wprost, czego brakuje — zamiast udawać, że wszystko doszło.
+     ================================================================= -->
+<script>
+(function(){
+  'use strict';
+
+  var KLUCZ = 'dewax_wyslane_oferty';
+  var LIMIT = 200;
+
+  /* Adres workera wysyłki. Ta sama stała, której używa wysyłka oferty —
+     czytamy ją leniwie, bo moduł ładuje się po niej. */
+  function adresWysylki(){
+    try { return (typeof SEND_OFFER !== 'undefined' && SEND_OFFER.url) || ''; }
+    catch(e){ return ''; }
+  }
+  function adresHubspot(){
+    try { return (typeof LEADS !== 'undefined' && LEADS.hubspotProxy) || ''; }
+    catch(e){ return ''; }
+  }
+
+  /* ---------------- kronika wysyłek ---------------- */
+
+  function wczytaj(){
+    try { return JSON.parse(localStorage.getItem(KLUCZ) || '[]') || []; }
+    catch(e){ return []; }
+  }
+  function zapiszWszystko(lista){
+    try { localStorage.setItem(KLUCZ, JSON.stringify(lista.slice(0, LIMIT))); } catch(e){}
+  }
+
+  function zapisz(rekord){
+    var lista = wczytaj();
+    lista.unshift(rekord);
+    zapiszWszystko(lista);
+    rysuj();
+    return rekord;
+  }
+
+  /* Nadpisanie statusu wpisu. Bez ID dostawcy nie mamy czego szukać —
+     wtedy dopinamy status do najnowszego wpisu na ten sam adres. */
+  function ustawStatus(id, status, kiedy, powod){
+    var lista = wczytaj();
+    var i = -1;
+    if(id){
+      for(var k=0;k<lista.length;k++) if(lista[k].id === id){ i = k; break; }
+    }
+    if(i < 0) return null;
+    lista[i].status = status;
+    if(kiedy) lista[i].doreczono = kiedy;
+    if(powod) lista[i].powod = powod;
+    zapiszWszystko(lista);
+    rysuj();
+    return lista[i];
+  }
+
+  /* ---------------- odpytanie o doręczenie ---------------- */
+
+  /* Mapowanie zdarzeń dostawcy (Resend) na język handlowca.
+     „sent" to dopiero oddanie listu do sieci — nie ma prawa udawać sukcesu. */
+  var OPISY = {
+    delivered:        { txt:'Doręczona do skrzynki klienta', ok:true },
+    opened:           { txt:'Klient otworzył wiadomość',     ok:true },
+    clicked:          { txt:'Klient kliknął w link',         ok:true },
+    sent:             { txt:'Oddana do sieci — czekam na potwierdzenie', ok:null },
+    queued:           { txt:'W kolejce u dostawcy',          ok:null },
+    scheduled:        { txt:'Zaplanowana u dostawcy',        ok:null },
+    delivery_delayed: { txt:'Doręczenie opóźnione — serwer klienta nie przyjmuje', ok:null },
+    bounced:          { txt:'ODRZUCONA przez serwer klienta — nie dotarła', ok:false },
+    complained:       { txt:'Klient oznaczył jako spam',     ok:false },
+    failed:           { txt:'Wysyłka nie powiodła się',      ok:false }
+  };
+
+  function opisz(ev){
+    return OPISY[String(ev || '').toLowerCase()] || { txt:'Status: ' + ev, ok:null };
+  }
+
+  /* Jedno zapytanie o status. Zwraca {ev, kiedy, powod} albo null. */
+  function pobierzStatus(id){
+    var url = adresWysylki();
+    if(!url || !id) return Promise.resolve(null);
+    var fetcher = window.dxApiFetch || fetch;
+    return fetcher(url.replace(/\/+$/, '') + '/status/' + encodeURIComponent(id), { method:'GET' })
+      .then(function(r){
+        if(r.status === 404) return { brakEndpointu:true };
+        if(!r.ok) return null;
+        return r.json().catch(function(){ return null; });
+      })
+      .then(function(j){
+        if(!j) return null;
+        if(j.brakEndpointu) return j;
+        var d = j.data || j;
+        return {
+          ev: d.last_event || d.lastEvent || d.status || '',
+          kiedy: d.delivered_at || d.last_event_at || d.created_at || '',
+          powod: d.reason || d.error || ''
+        };
+      })
+      .catch(function(){ return null; });
+  }
+
+  /* Doręczenie trwa sekundy, czasem minutę. Pytamy kilka razy, coraz rzadziej,
+     zamiast raz od razu po wysyłce — wtedy dostawca jeszcze nic nie wie. */
+  var ODSTEPY = [4000, 8000, 15000, 30000, 60000];
+
+  function sledz(id){
+    if(!id){
+      // Worker nie zwrócił identyfikatora, więc nie ma czego śledzić.
+      // Mówimy to wprost — cisza w tym miejscu była właśnie tym, przez co
+      // nikt nie wiedział, że oferty nie docierają.
+      rysuj();
+      return;
+    }
+    var i = 0;
+    (function krok(){
+      if(i >= ODSTEPY.length) return;
+      setTimeout(function(){
+        pobierzStatus(id).then(function(w){
+          if(!w){ i++; krok(); return; }
+          if(w.brakEndpointu){ ustawStatus(id, 'brak-endpointu'); return; }
+          var o = opisz(w.ev);
+          ustawStatus(id, String(w.ev || '').toLowerCase(), w.kiedy, w.powod);
+          // Rozstrzygnięte — dalsze pytanie nic nie wniesie.
+          if(o.ok === true || o.ok === false) return;
+          i++; krok();
+        });
+      }, ODSTEPY[i]);
+    })();
+  }
+
+  /* Ręczne odświeżenie wszystkich nierozstrzygniętych wysyłek. */
+  function odswiez(){
+    var lista = wczytaj();
+    var doSprawdzenia = lista.filter(function(r){
+      var o = opisz(r.status);
+      return r.id && o.ok === null && r.status !== 'brak-endpointu';
+    }).slice(0, 10);
+    if(!doSprawdzenia.length){ rysuj(); return Promise.resolve(); }
+    return Promise.all(doSprawdzenia.map(function(r){
+      return pobierzStatus(r.id).then(function(w){
+        if(!w) return;
+        if(w.brakEndpointu){ ustawStatus(r.id, 'brak-endpointu'); return; }
+        ustawStatus(r.id, String(w.ev || '').toLowerCase(), w.kiedy, w.powod);
+      });
+    }));
+  }
+
+  /* ---------------- widok ---------------- */
+
+  function esc(v){
+    return String(v == null ? '' : v).replace(/[&<>"']/g, function(m){
+      return ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[m];
+    });
+  }
+
+  function czas(iso){
+    if(!iso) return '';
+    var d = new Date(iso);
+    if(isNaN(d)) return '';
+    return d.toLocaleString('pl-PL', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+  }
+
+  function kolor(ok){
+    if(ok === true) return '#2f7d32';
+    if(ok === false) return '#b3261e';
+    return '#8a6d00';
+  }
+  function ikona(ok){
+    if(ok === true) return '✅';
+    if(ok === false) return '❌';
+    return '⏳';
+  }
+
+  function wiersz(r){
+    var o;
+    if(r.status === 'brak-endpointu'){
+      o = { txt:'Brak potwierdzenia — worker nie ma endpointu /status', ok:null };
+    } else if(r.status === 'przyjete' && !r.id){
+      o = { txt:'Przyjęta przez workera — bez ID, nie da się potwierdzić', ok:null };
+    } else if(r.status === 'przyjete'){
+      o = { txt:'Przyjęta do wysyłki — czekam na potwierdzenie', ok:null };
+    } else {
+      o = opisz(r.status);
+    }
+    return '<div style="display:flex;gap:8px;align-items:flex-start;padding:7px 0;border-top:1px solid #e8edf5;">'
+      + '<span style="font-size:13px;line-height:1.3;">' + ikona(o.ok) + '</span>'
+      + '<div style="flex:1;min-width:0;">'
+      +   '<div style="font-size:11px;font-weight:800;color:' + kolor(o.ok) + ';">' + esc(o.txt) + '</div>'
+      +   '<div style="font-size:10px;color:#64748B;margin-top:2px;word-break:break-all;">'
+      +     esc(r.email) + ' · wysłano ' + esc(czas(r.czas))
+      +     (r.doreczono ? ' · potwierdzono ' + esc(czas(r.doreczono)) : '')
+      +   '</div>'
+      +   (r.powod ? '<div style="font-size:10px;color:#b3261e;margin-top:2px;">Powód: ' + esc(r.powod) + '</div>' : '')
+      + '</div></div>';
+  }
+
+  function rysuj(){
+    var box = document.getElementById('dxDeliveryBox');
+    if(!box) return;
+    var lista = wczytaj().slice(0, 6);
+    if(!lista.length){ box.innerHTML = ''; return; }
+
+    var brakStatusow = lista.every(function(r){
+      return r.status === 'brak-endpointu' || (r.status === 'przyjete' && !r.id);
+    });
+
+    box.innerHTML =
+      '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">'
+      +   '<div style="font-size:10px;font-weight:800;color:#0B3553;text-transform:uppercase;letter-spacing:.06em;">Doręczenie ofert</div>'
+      +   '<button type="button" id="dxOdswiezDoreczenia" style="background:#e2e8f0;color:#334155;font-size:10px;font-weight:800;padding:4px 10px;border-radius:7px;border:none;cursor:pointer;">Odśwież</button>'
+      + '</div>'
+      + lista.map(wiersz).join('')
+      + (brakStatusow
+          ? '<div style="font-size:10px;color:#8a6d00;margin-top:8px;line-height:1.45;">'
+            + 'Kreator nie dostaje z workera potwierdzeń doręczenia, więc nie wie, czy oferty docierają. '
+            + 'Żeby to naprawić, wgraj <strong>worker/dewax-send.js</strong> z tego repozytorium — dokłada endpoint '
+            + '<code>/status/{id}</code>. Instrukcja: <strong>DIAGNOSTYKA.md</strong>.'
+            + '</div>'
+          : '')
+      + '</div>';
+
+    var btn = document.getElementById('dxOdswiezDoreczenia');
+    if(btn) btn.addEventListener('click', function(){
+      btn.disabled = true; btn.textContent = 'Sprawdzam…';
+      Promise.resolve(odswiez()).then(function(){ rysuj(); });
+    });
+  }
+
+  window.DX_DORECZENIA = {
+    zapisz: zapisz,
+    sledz: sledz,
+    odswiez: odswiez,
+    rysuj: rysuj,
+    wczytaj: wczytaj,
+    pobierzStatus: pobierzStatus
+  };
+
+  /* Podgląd oferty jest budowany od nowa przy każdym wejściu w krok 5,
+     więc kronikę trzeba dorysować po każdym renderze. */
+  var _gen = window.generateReport;
+  if(typeof _gen === 'function'){
+    window.generateReport = function(){
+      var r = _gen.apply(this, arguments);
+      setTimeout(rysuj, 60);
+      return r;
+    };
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ setTimeout(rysuj, 500); });
+  else setTimeout(rysuj, 500);
+
+  /* ================= DIAGNOSTYKA POŁĄCZEŃ =================
+     Odpowiada na pytanie „dlaczego nie idą maile" bez zaglądania do konsoli.
+     Każdy test kończy się jednym zdaniem: co sprawdzano, co wyszło i co z tym
+     zrobić. Testy idą po kolei, bo drugi ma sens tylko gdy pierwszy przeszedł. */
+
+  function wynik(nazwa, ok, opis, rada){
+    return { nazwa:nazwa, ok:ok, opis:opis, rada:rada || '' };
+  }
+
+  function testHubspot(){
+    var url = adresHubspot();
+    if(!url) return Promise.resolve(wynik('HubSpot', false, 'Brak adresu workera w kreatorze.', 'Ustaw LEADS.hubspotProxy w index.html.'));
+    return (window.dxApiFetch || fetch)(url + '/search', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({ limit:1, properties:['email'] })
+    }).then(function(r){
+      if(r.status === 401 || r.status === 403) return wynik('HubSpot', false, 'Worker odrzucił kod dostępu (HTTP ' + r.status + ').', 'Kod podany przy wejściu nie zgadza się z sekretem AUTH_TOKEN w Cloudflare → Workers → dewax-hubspot.');
+      if(!r.ok) return wynik('HubSpot', false, 'Worker odpowiedział błędem HTTP ' + r.status + '.', 'Sprawdź logi workera dewax-hubspot w Cloudflare.');
+      return wynik('HubSpot', true, 'Połączenie działa, kod dostępu zaakceptowany.');
+    }).catch(function(e){
+      return wynik('HubSpot', false, 'Brak połączenia z workerem (' + (e && e.message ? e.message : 'błąd sieci') + ').', 'Worker dewax-hubspot nie odpowiada albo blokuje CORS dla tej domeny.');
+    });
+  }
+
+  function testWysylka(){
+    var url = adresWysylki();
+    if(!url) return Promise.resolve(wynik('Wysyłka maili', false, 'Brak adresu workera wysyłki.', 'Ustaw SEND_PROXY w index.html.'));
+    // Celowo pusty payload: worker ma odpowiedzieć „brak danych" (400).
+    // 400 dowodzi, że worker żyje i przyjął nasz kod dostępu.
+    return (window.dxApiFetch || fetch)(url, {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({ diagnostyka:true })
+    }).then(function(r){
+      if(r.status === 401 || r.status === 403) return wynik('Wysyłka maili', false, 'Worker odrzucił kod dostępu (HTTP ' + r.status + ').', 'Kod z ekranu wejścia nie zgadza się z AUTH_TOKEN w Cloudflare → Workers → dewax-send. To najczęstsza przyczyna cichego braku wysyłki.');
+      if(r.status === 400) return wynik('Wysyłka maili', true, 'Worker żyje i zaakceptował kod dostępu.');
+      if(!r.ok) return wynik('Wysyłka maili', false, 'Worker odpowiedział błędem HTTP ' + r.status + '.', 'Zajrzyj w logi workera dewax-send w Cloudflare.');
+      return wynik('Wysyłka maili', true, 'Worker odpowiada poprawnie.');
+    }).catch(function(e){
+      return wynik('Wysyłka maili', false, 'Brak połączenia z workerem (' + (e && e.message ? e.message : 'błąd sieci') + ').', 'Worker dewax-send nie jest wdrożony albo nie przepuszcza żądań z tej domeny (CORS).');
+    });
+  }
+
+  function testStatusow(){
+    var url = adresWysylki();
+    if(!url) return Promise.resolve(wynik('Potwierdzenia doręczenia', false, 'Brak adresu workera wysyłki.'));
+    return (window.dxApiFetch || fetch)(url.replace(/\/+$/, '') + '/status/diagnostyka', { method:'GET' })
+      .then(function(r){
+        if(r.status === 404) return wynik('Potwierdzenia doręczenia', false, 'Worker nie ma endpointu /status/{id}.', 'Wgraj worker/dewax-send.js z repozytorium — bez tego kreator nie wie, czy oferta doszła do klienta.');
+        if(r.status === 401 || r.status === 403) return wynik('Potwierdzenia doręczenia', false, 'Worker odrzucił kod dostępu (HTTP ' + r.status + ').', 'Ten sam AUTH_TOKEN co przy wysyłce.');
+        return wynik('Potwierdzenia doręczenia', true, 'Endpoint /status odpowiada — kreator potrafi potwierdzać doręczenia.');
+      })
+      .catch(function(e){
+        return wynik('Potwierdzenia doręczenia', false, 'Brak połączenia (' + (e && e.message ? e.message : 'błąd sieci') + ').');
+      });
+  }
+
+  function testHistorii(){
+    var lista = wczytaj();
+    if(!lista.length) return wynik('Historia wysyłek', true, 'Brak wysyłek z tego urządzenia — nie ma czego oceniać.');
+    var zle = lista.filter(function(r){ return opisz(r.status).ok === false; }).length;
+    var bezPotw = lista.filter(function(r){
+      return r.status === 'przyjete' || r.status === 'brak-endpointu' || !r.id;
+    }).length;
+    if(zle) return wynik('Historia wysyłek', false, zle + ' z ' + lista.length + ' ofert zostało odrzuconych przez serwer klienta.', 'Zajrzyj w powody przy wpisach poniżej — najczęściej to niezweryfikowana domena nadawcy.');
+    if(bezPotw === lista.length) return wynik('Historia wysyłek', false, 'Żadna z ' + lista.length + ' wysyłek nie ma potwierdzenia doręczenia.', 'Kreator nie wie, czy te oferty doszły. Wgraj workera z endpointem /status.');
+    return wynik('Historia wysyłek', true, lista.length - bezPotw + ' z ' + lista.length + ' wysyłek ma potwierdzenie doręczenia.');
+  }
+
+  window.dxDiagnostyka = function(){
+    var stare = document.getElementById('dxDiagOkno');
+    if(stare) stare.remove();
+
+    var okno = document.createElement('div');
+    okno.id = 'dxDiagOkno';
+    okno.className = 'no-print';
+    okno.style.cssText = 'position:fixed;inset:0;background:rgba(11,53,83,.55);z-index:9999;display:flex;'
+      + 'align-items:center;justify-content:center;padding:20px;';
+    okno.innerHTML =
+      '<div style="background:#fff;border-radius:14px;max-width:620px;width:100%;max-height:85vh;overflow:auto;'
+      + 'padding:22px 24px;box-shadow:0 20px 60px rgba(0,0,0,.3);">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">'
+      +   '<h3 style="font-size:16px;font-weight:800;color:#0B3553;margin:0;">Diagnostyka połączeń</h3>'
+      +   '<button type="button" id="dxDiagZamknij" style="background:#e2e8f0;color:#334155;font-size:12px;'
+      +   'font-weight:800;padding:6px 12px;border-radius:8px;border:none;cursor:pointer;">Zamknij</button>'
+      + '</div>'
+      + '<p style="font-size:11px;color:#64748B;margin:0 0 14px;">Sprawdzam obie bramki kreatora: bazę klientów i wysyłkę ofert.</p>'
+      + '<div id="dxDiagWynik" style="font-size:12px;color:#334155;">Sprawdzam…</div>'
+      + '</div>';
+    document.body.appendChild(okno);
+    okno.addEventListener('click', function(e){ if(e.target === okno) okno.remove(); });
+    document.getElementById('dxDiagZamknij').addEventListener('click', function(){ okno.remove(); });
+
+    Promise.all([testHubspot(), testWysylka(), testStatusow()]).then(function(w){
+      w.push(testHistorii());
+      var html = w.map(function(t){
+        return '<div style="padding:10px 0;border-top:1px solid #e8edf5;">'
+          + '<div style="font-size:12px;font-weight:800;color:' + (t.ok ? '#2f7d32' : '#b3261e') + ';">'
+          +   (t.ok ? '✅ ' : '❌ ') + esc(t.nazwa)
+          + '</div>'
+          + '<div style="font-size:11px;color:#334155;margin-top:3px;">' + esc(t.opis) + '</div>'
+          + (t.rada ? '<div style="font-size:11px;color:#8a6d00;margin-top:4px;line-height:1.45;">→ ' + esc(t.rada) + '</div>' : '')
+          + '</div>';
+      }).join('');
+
+      var zle = w.filter(function(t){ return !t.ok; });
+      var podsum = zle.length
+        ? '<div style="background:#fff4e5;border:1px solid #ffd8a8;border-radius:10px;padding:10px 12px;margin-top:12px;'
+          + 'font-size:11px;color:#8a4b00;line-height:1.5;">Do naprawy: <strong>' + zle.length + '</strong>. '
+          + 'Kolejność ma znaczenie — zacznij od pierwszego błędu na liście. '
+          + 'Pełny opis każdego przypadku jest w pliku <strong>DIAGNOSTYKA.md</strong> w repozytorium.</div>'
+        : '<div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:10px;padding:10px 12px;margin-top:12px;'
+          + 'font-size:11px;color:#1b5e20;line-height:1.5;">Wszystko odpowiada. Jeśli klienci mimo to nie dostają ofert, '
+          + 'przyczyna leży po stronie dostawcy poczty — sprawdź weryfikację domeny dewax.pl oraz rekordy SPF, DKIM '
+          + 'i DMARC. Krok po kroku w <strong>DIAGNOSTYKA.md</strong>.</div>';
+
+      var el = document.getElementById('dxDiagWynik');
+      if(el) el.innerHTML = html + podsum;
+    });
+  };
+})();
+</script>
+<!-- DEWAX-DORECZENIA koniec -->
 </body>
 </html>
 
