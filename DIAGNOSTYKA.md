@@ -54,25 +54,30 @@ klientów i wysyłkę ofert, i pisze po polsku, co nie działa.
 
 ---
 
-## 3. Kto wystawia ofertę — cztery podpisy, dwa konta
+## 3. Kto wystawia ofertę — cztery podpisy, jedno konto
 
-W HubSpocie są dwa konta. Podpisów na ofertach są cztery. Daria pracuje na
-koncie Adama, Romana na koncie Gosi:
+Na liście „Ofertę wystawia" są cztery osoby. Wszystkie transakcje
+z kreatora trafiają na **konto Adama**:
 
 | Podpis w kreatorze | Konto w HubSpocie |
 |---|---|
 | Adam Demczyszak | Adam Demczyszak |
 | Daria Czajka | Adam Demczyszak |
-| Małgorzata Kuś | Małgorzata Kuś |
-| Romana Wojnowska | Małgorzata Kuś |
+| Małgorzata Kuś | Adam Demczyszak |
+| Romana Wojnowska | Adam Demczyszak |
 
-Nowych kont nie zakładamy. Kreator rozróżnia podpisy wewnętrznie, a do
-HubSpota wysyła numer właściwego konta.
+Nowych kont nie zakładamy. Podpis wybrany w kreatorze wchodzi na ofertę,
+a właścicielem transakcji w HubSpocie jest zawsze Adam.
+
+**Ważne dla Gosi:** ona ma w HubSpocie własne konto, ale kreator z niego
+nie korzysta. Transakcje wystawione przez nią **nie pojawią się na jej
+własnej liście**. Zobaczy je dopiero po ustawieniu uprawnień z punktu 4
+poniżej — bez tego kroku Gosia nie zobaczy swoich ofert w HubSpocie.
 
 Wcześniej ta lista była pomylona: pozycja podpisana „Romana Wojnowska"
 wysyłała numer konta Adama, a pozycja „Adam Demczyszak" wysyłała numer,
 którego w HubSpocie w ogóle nie ma. Dlatego transakcje nie trafiały tam,
-gdzie powinny. Teraz numery się zgadzają.
+gdzie powinny. Teraz numer jest jeden i się zgadza.
 
 Poprawiony jest też komunikat *„transakcja zapisana, ale nie udało się jej
 odnaleźć"*. Kreator zapisywał transakcję, a zaraz potem szukał jej po
@@ -94,7 +99,9 @@ pamięta.
 > wystawia"** — lista jest nad danymi klienta. Wystarczy raz, potem kreator
 > będzie pamiętał.
 >
-> Na liście są cztery podpisy: Adam, Daria, Gosia i Romana.
+> Na liście są cztery podpisy: Adam, Daria, Gosia i Romana. Wybrany podpis
+> wchodzi na ofertę; w HubSpocie wszystkie transakcje z kreatora zapisują
+> się na koncie Adama, więc szukajcie ich tam, a nie na własnych listach.
 >
 > Druga zmiana: po wysłaniu oferty kreator pisze teraz **„przekazana do
 > wysyłki"**, a pod treścią maila pokazuje, czy oferta faktycznie dotarła do
@@ -107,6 +114,11 @@ pamięta.
 
 To jedyna rzecz, której nie da się ustawić z kodu. Trzeba wyklikać
 w HubSpocie, osobno dla Adama i dla Gosi.
+
+**Dla Gosi to nie jest opcja, tylko warunek.** Wszystkie transakcje
+z kreatora należą do konta Adama (patrz punkt 3), więc dopóki Gosia nie ma
+uprawnienia „View: Everything", nie zobaczy w HubSpocie ani jednej swojej
+oferty.
 
 HubSpot jest po angielsku, więc poniżej podane są napisy, które zobaczysz
 na ekranie.

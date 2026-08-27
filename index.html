@@ -7171,21 +7171,28 @@ html, body { -webkit-text-size-adjust: 100% !important; -moz-text-size-adjust: 1
      przypisywało transakcję Adamowi. ID 79652341 zostało usunięte. */
 
   /* Podpis na ofercie -> konto w HubSpocie.
-     Daria pracuje na koncie Adama, Romana na koncie Gosi — cztery podpisy,
-     dwa konta. Nowych kont nie zakładamy (ustalenie biznesowe).
+
+     Cztery podpisy, jedno konto: wszystkie transakcje z kreatora trafiają
+     na konto Adama (76509862). Ustalenie biznesowe — nowych kont nie
+     zakładamy. Gosia ma wprawdzie własne konto (79601430), ale kreator
+     świadomie z niego nie korzysta; jej oferty też idą na konto Adama.
+
+     Skutek do zapamiętania: transakcje z kreatora nie pojawią się na
+     własnej liście Gosi w HubSpocie. Zobaczy je dopiero z uprawnieniem
+     „View: Everything" — krok po kroku w DIAGNOSTYKA.md.
 
      Stąd rozdział: "kod" jest wewnętrzny i odróżnia podpisy, "id" to
-     prawdziwy właściciel w HubSpocie. Gdyby wartością <option> było "id",
-     dwa podpisy dzielące konto byłyby nie do rozróżnienia i odczyt
-     z localStorage wskazywałby na chybił trafił jedno z nich.
+     właściciel w HubSpocie. Gdyby wartością <option> było "id", podpisy
+     dzielące konto byłyby nie do rozróżnienia i odczyt z localStorage
+     wskazywałby na chybił trafił jeden z nich.
 
-     Lista jest wpisana tu, a nie pobierana z HubSpota: HubSpot zna tylko
-     dwa konta i nie ma pojęcia o podpisach Darii i Romany. */
+     Lista jest wpisana tu, a nie pobierana z HubSpota: HubSpot zna konta,
+     a nie podpisy, i nie ma pojęcia o Darii ani o Romanie. */
   var OWNERS = [
     { kod:'adam',   id:'76509862', imie:'Adam Demczyszak' },
     { kod:'daria',  id:'76509862', imie:'Daria Czajka' },
-    { kod:'gosia',  id:'79601430', imie:'Małgorzata Kuś' },
-    { kod:'romana', id:'79601430', imie:'Romana Wojnowska' }
+    { kod:'gosia',  id:'76509862', imie:'Małgorzata Kuś' },
+    { kod:'romana', id:'76509862', imie:'Romana Wojnowska' }
   ];
 
   function el(id){ return document.getElementById(id); }
