@@ -7168,39 +7168,25 @@ html, body { -webkit-text-size-adjust: 100% !important; -moz-text-size-adjust: 1
      „Romana Wojnowska" to w HubSpocie Adam Demczyszak, a 79652341 („Adam
      Demczyszak") w portalu nie istnieje. Wybranie „Adama" wysyłało więc
      nieistniejące ID i HubSpot odrzucał przypisanie, a wybranie „Romany"
-     przypisywało transakcję Adamowi.
+     przypisywało transakcję Adamowi. ID 79652341 zostało usunięte. */
 
-     Poniższa lista to awaryjny fallback, zweryfikowany w portalu 49004516.
-     Właściwa lista pobierana jest z HubSpota przy starcie (GET /owners) —
-     dzięki temu nowy handlowiec pojawia się w kreatorze bez zmiany kodu. */
+  /* Podpis na ofercie -> konto w HubSpocie.
+     Daria pracuje na koncie Adama, Romana na koncie Gosi — cztery podpisy,
+     dwa konta. Nowych kont nie zakładamy (ustalenie biznesowe).
+
+     Stąd rozdział: "kod" jest wewnętrzny i odróżnia podpisy, "id" to
+     prawdziwy właściciel w HubSpocie. Gdyby wartością <option> było "id",
+     dwa podpisy dzielące konto byłyby nie do rozróżnienia i odczyt
+     z localStorage wskazywałby na chybił trafił jedno z nich.
+
+     Lista jest wpisana tu, a nie pobierana z HubSpota: HubSpot zna tylko
+     dwa konta i nie ma pojęcia o podpisach Darii i Romany. */
   var OWNERS = [
-    { id:'76509862', imie:'Adam Demczyszak' },
-    { id:'79601430', imie:'Małgorzata Kuś' }
+    { kod:'adam',   id:'76509862', imie:'Adam Demczyszak' },
+    { kod:'daria',  id:'76509862', imie:'Daria Czajka' },
+    { kod:'gosia',  id:'79601430', imie:'Małgorzata Kuś' },
+    { kod:'romana', id:'79601430', imie:'Romana Wojnowska' }
   ];
-
-  /* Pobranie aktywnych właścicieli z HubSpota. Gdy worker nie obsługuje
-     jeszcze /owners, zostaje lista awaryjna — kreator działa dalej. */
-  function loadOwners(){
-    if(typeof window.dxApiFetch !== 'function') return Promise.resolve(false);
-    return window.dxApiFetch(HS + '/owners', { method:'GET' })
-      .then(function(r){ return r.ok ? r.json() : null; })
-      .then(function(j){
-        var rs = j && (j.results || j.owners || (Array.isArray(j) ? j : null));
-        if(!rs || !rs.length) return false;
-        var lista = [];
-        for(var i=0;i<rs.length;i++){
-          var o = rs[i];
-          if(o.archived || o.isActive === false) continue;
-          var id = o.id || o.ownerId;
-          var imie = (o.name || ((o.firstName||'') + ' ' + (o.lastName||''))).trim() || o.email || '';
-          if(id && imie) lista.push({ id:String(id), imie:imie });
-        }
-        if(!lista.length) return false;
-        OWNERS = lista;
-        return true;
-      })
-      .catch(function(){ return false; });
-  }
 
   function el(id){ return document.getElementById(id); }
 
@@ -7227,7 +7213,7 @@ html, body { -webkit-text-size-adjust: 100% !important; -moz-text-size-adjust: 1
       + '<select id="dxOwner" style="width:100%;background:#fff;border:1px solid #CBD5E1;'
       + 'padding:10px 12px;font-size:13px;font-weight:600;border-radius:10px;outline:none;">'
       + '<option value="">— wybierz handlowca —</option>'
-      + OWNERS.map(function(o){ return '<option value="'+o.id+'">'+o.imie+'</option>'; }).join('')
+      + OWNERS.map(function(o){ return '<option value="'+o.kod+'">'+o.imie+'</option>'; }).join('')
       + '</select>'
       + '<p style="font-size:10px;color:#64748B;margin-top:4px;">Transakcja w HubSpocie zostanie '
       + 'przypisana do tej osoby. Bez tego nie pojawi się na jej liście leadów.</p>';
@@ -7235,37 +7221,39 @@ html, body { -webkit-text-size-adjust: 100% !important; -moz-text-size-adjust: 1
     anchor.parentElement.appendChild(wrap);
 
     var sel = el('dxOwner');
+    // Zapis sprzed rozdziału kod/id trzymał numer konta HubSpota, który nie
+    // pasuje do żadnej opcji — select zostaje wtedy pusty i handlowiec
+    // wybiera się raz od nowa. Świadomie bez migracji: jednorazowy klik
+    // jest tańszy niż kod zgadujący, który z dwóch podpisów miał na myśli.
     sel.value = saved();
+    if(!sel.value) save('');
     sel.addEventListener('change', function(){ save(sel.value); });
-  }
-
-  /* Po pobraniu listy z HubSpota podmieniamy opcje, zachowując wybór. */
-  function refreshPicker(){
-    var sel = el('dxOwner');
-    if(!sel) return;
-    var wybrany = sel.value || saved();
-    sel.innerHTML = '<option value="">— wybierz handlowca —</option>'
-      + OWNERS.map(function(o){ return '<option value="'+o.id+'">'+o.imie+'</option>'; }).join('');
-    // Zapisany wcześniej handlowiec mógł zniknąć z HubSpota — wtedy nie
-    // udajemy, że nadal jest wybrany, tylko wracamy do pustego pola.
-    sel.value = wybrany;
-    if(sel.value !== wybrany) save('');
   }
 
   /* ---------------- przypisanie po utworzeniu ---------------- */
 
-  function ownerId(){
+  /** Wewnętrzny kod podpisu — to trzyma <select> i localStorage. */
+  function ownerKod(){
     var sel = el('dxOwner');
     return (sel && sel.value) || saved() || '';
   }
 
+  /** Prawdziwy właściciel w HubSpocie. Pusty ciąg, gdy kod nic nie znaczy
+      (np. wpis z localStorage sprzed rozdziału kod/id). */
+  function ownerId(){
+    var kod = ownerKod();
+    for(var i=0;i<OWNERS.length;i++) if(OWNERS[i].kod === kod) return OWNERS[i].id;
+    return '';
+  }
+
   function ownerName(){
-    var id = ownerId();
-    for(var i=0;i<OWNERS.length;i++) if(OWNERS[i].id === id) return OWNERS[i].imie;
+    var kod = ownerKod();
+    for(var i=0;i<OWNERS.length;i++) if(OWNERS[i].kod === kod) return OWNERS[i].imie;
     return '';
   }
 
   // syncDealToHubSpot wkłada to ID już do żądania tworzącego transakcję.
+  // Na zewnątrz wychodzi wyłącznie ID HubSpota — nigdy wewnętrzny kod.
   window.dxOwnerId = ownerId;
   window.dxOwnerName = ownerName;
 
@@ -7370,8 +7358,6 @@ html, body { -webkit-text-size-adjust: 100% !important; -moz-text-size-adjust: 1
 
   function boot(){
     injectPicker();
-    // Lista handlowców prosto z HubSpota — kod trzyma tylko awaryjny fallback.
-    loadOwners().then(function(pobrano){ if(pobrano) refreshPicker(); });
     var st1 = el('step1');
     if(st1 && window.MutationObserver){
       new MutationObserver(function(){ injectPicker(); }).observe(st1, {childList:true, subtree:true});
@@ -7395,20 +7381,26 @@ html, body { -webkit-text-size-adjust: 100% !important; -moz-text-size-adjust: 1
      Potwierdzenie doręczenia oferty i diagnostyka połączeń.
 
      Powód powstania: handlowcy meldowali, że kreator pisze „oferta wysłana",
-     a klient maila nie dostaje. Kreator nie miał jak tego wykryć — kończył
-     pracę na odpowiedzi workera, która mówi tylko tyle, że worker przyjął
-     zlecenie. Czy list trafił do skrzynki, wie dopiero dostawca poczty.
+     a klient maila nie dostaje. Sprawdzone ręcznie — wysyłka działa, oferty
+     docierają do Odebranych. Kreator kończył jednak pracę na odpowiedzi
+     workera, która mówi tylko tyle, że worker przyjął zlecenie, i na tej
+     podstawie ogłaszał sukces. Maile leżały u klientów nieprzeczytane,
+     a handlowiec nie miał jak tego sprawdzić i zgłaszał awarię.
 
      Moduł robi trzy rzeczy:
        1. prowadzi kronikę wysyłek w localStorage (co, do kogo, kiedy),
        2. odpytuje workera o status doręczenia (GET /status/{id}),
-       3. daje przycisk „Sprawdź połączenie", który sprawdza obie bramki
-          i pisze, co dokładnie nie działa.
+       3. daje przycisk „Sprawdź połączenie" (GET /health + baza klientów).
 
-     Punkt 2 wymaga endpointu /status/{id} w workerze dewax-send.
-     Gotowy kod jest w worker/dewax-send.js, opis w DIAGNOSTYKA.md.
-     Do czasu wdrożenia kreator pokazuje kronikę bez potwierdzeń i mówi
-     wprost, czego brakuje — zamiast udawać, że wszystko doszło.
+     Kodu workera nie ma w tym repozytorium i nie należy go tu wstawiać —
+     dewax-send jest wdrażany ręcznie przez panel Cloudflare i tam jest jego
+     jedyna prawdziwa wersja (obecnie 56b9c876). Kreator czyta z /status/{id}
+     pola „stan", „opis", „zdarzenie" i „wyslano" — jeśli worker będzie
+     zmieniany, te nazwy muszą się zgadzać. Szczegóły w DIAGNOSTYKA.md.
+
+     Gdy na Cloudflare stoi starsza wersja workera, /status zwraca 404;
+     kreator mówi wtedy wprost, że nie potrafi potwierdzić doręczenia,
+     zamiast udawać, że oferta doszła.
      ================================================================= -->
 <script>
 (function(){
@@ -7448,7 +7440,7 @@ html, body { -webkit-text-size-adjust: 100% !important; -moz-text-size-adjust: 1
 
   /* Nadpisanie statusu wpisu. Bez ID dostawcy nie mamy czego szukać —
      wtedy dopinamy status do najnowszego wpisu na ten sam adres. */
-  function ustawStatus(id, status, kiedy, powod){
+  function ustawStatus(id, status, kiedy, opis, zdarzenie){
     var lista = wczytaj();
     var i = -1;
     if(id){
@@ -7457,7 +7449,8 @@ html, body { -webkit-text-size-adjust: 100% !important; -moz-text-size-adjust: 1
     if(i < 0) return null;
     lista[i].status = status;
     if(kiedy) lista[i].doreczono = kiedy;
-    if(powod) lista[i].powod = powod;
+    if(opis) lista[i].opis = opis;
+    if(zdarzenie) lista[i].zdarzenie = zdarzenie;
     zapiszWszystko(lista);
     rysuj();
     return lista[i];
@@ -7465,32 +7458,39 @@ html, body { -webkit-text-size-adjust: 100% !important; -moz-text-size-adjust: 1
 
   /* ---------------- odpytanie o doręczenie ---------------- */
 
-  /* Mapowanie zdarzeń dostawcy (Resend) na język handlowca.
-     „sent" to dopiero oddanie listu do sieci — nie ma prawa udawać sukcesu. */
-  var OPISY = {
-    delivered:        { txt:'Doręczona do skrzynki klienta', ok:true },
-    opened:           { txt:'Klient otworzył wiadomość',     ok:true },
-    clicked:          { txt:'Klient kliknął w link',         ok:true },
-    sent:             { txt:'Oddana do sieci — czekam na potwierdzenie', ok:null },
-    queued:           { txt:'W kolejce u dostawcy',          ok:null },
-    scheduled:        { txt:'Zaplanowana u dostawcy',        ok:null },
-    delivery_delayed: { txt:'Doręczenie opóźnione — serwer klienta nie przyjmuje', ok:null },
-    bounced:          { txt:'ODRZUCONA przez serwer klienta — nie dotarła', ok:false },
-    complained:       { txt:'Klient oznaczył jako spam',     ok:false },
-    failed:           { txt:'Wysyłka nie powiodła się',      ok:false }
+  /* Stany zwracane przez workera dewax-send w polu „stan".
+     Worker podaje też gotowy opis po polsku i to jego pokazujemy — ta mapa
+     służy do rozstrzygnięcia, czy sprawa jest zamknięta (przestajemy wtedy
+     pytać), i do doboru ikony. „w_drodze" nie ma prawa udawać sukcesu: to
+     dopiero oddanie listu do sieci, nie potwierdzenie doręczenia. */
+  var STANY = {
+    dostarczona: { txt:'Doręczona do skrzynki klienta', ok:true },
+    w_drodze:    { txt:'W drodze — czekam na potwierdzenie', ok:null },
+    opozniona:   { txt:'Doręczenie opóźnione — serwer klienta nie przyjmuje', ok:null },
+    odrzucona:   { txt:'ODRZUCONA przez serwer klienta — nie dotarła', ok:false },
+    spam:        { txt:'Klient oznaczył wiadomość jako spam', ok:false },
+    nieznany:    { txt:'Dostawca nie zna tej wiadomości', ok:null }
   };
 
-  function opisz(ev){
-    return OPISY[String(ev || '').toLowerCase()] || { txt:'Status: ' + ev, ok:null };
+  function opisz(stan, opisZWorkera){
+    var s = STANY[String(stan || '').toLowerCase()];
+    if(!s) return { txt: opisZWorkera || ('Status: ' + stan), ok:null };
+    // Opis workera jest bardziej szczegółowy, ale o tym, czy sprawa jest
+    // zamknięta, decyduje wyłącznie znany nam stan.
+    return { txt: opisZWorkera || s.txt, ok: s.ok };
   }
 
-  /* Jedno zapytanie o status. Zwraca {ev, kiedy, powod} albo null. */
+  /* Jedno zapytanie o status doręczenia.
+     Worker: GET /status/{id} -> { ok, id, stan, opis, zdarzenie, do, temat, wyslano }.
+     Kod dostępu idzie w nagłówku X-Dewax-Auth, który dokłada dxApiFetch. */
   function pobierzStatus(id){
     var url = adresWysylki();
     if(!url || !id) return Promise.resolve(null);
     var fetcher = window.dxApiFetch || fetch;
     return fetcher(url.replace(/\/+$/, '') + '/status/' + encodeURIComponent(id), { method:'GET' })
       .then(function(r){
+        // 404 na /status znaczy, że na Cloudflare stoi jeszcze stara wersja
+        // workera — bez tego endpointu doręczeń nie da się potwierdzić.
         if(r.status === 404) return { brakEndpointu:true };
         if(!r.ok) return null;
         return r.json().catch(function(){ return null; });
@@ -7498,11 +7498,11 @@ html, body { -webkit-text-size-adjust: 100% !important; -moz-text-size-adjust: 1
       .then(function(j){
         if(!j) return null;
         if(j.brakEndpointu) return j;
-        var d = j.data || j;
         return {
-          ev: d.last_event || d.lastEvent || d.status || '',
-          kiedy: d.delivered_at || d.last_event_at || d.created_at || '',
-          powod: d.reason || d.error || ''
+          stan: j.stan || '',
+          opis: j.opis || '',
+          zdarzenie: j.zdarzenie || '',
+          kiedy: j.wyslano || ''
         };
       })
       .catch(function(){ return null; });
@@ -7527,8 +7527,8 @@ html, body { -webkit-text-size-adjust: 100% !important; -moz-text-size-adjust: 1
         pobierzStatus(id).then(function(w){
           if(!w){ i++; krok(); return; }
           if(w.brakEndpointu){ ustawStatus(id, 'brak-endpointu'); return; }
-          var o = opisz(w.ev);
-          ustawStatus(id, String(w.ev || '').toLowerCase(), w.kiedy, w.powod);
+          var o = opisz(w.stan, w.opis);
+          ustawStatus(id, String(w.stan || '').toLowerCase(), w.kiedy, w.opis, w.zdarzenie);
           // Rozstrzygnięte — dalsze pytanie nic nie wniesie.
           if(o.ok === true || o.ok === false) return;
           i++; krok();
@@ -7541,15 +7541,15 @@ html, body { -webkit-text-size-adjust: 100% !important; -moz-text-size-adjust: 1
   function odswiez(){
     var lista = wczytaj();
     var doSprawdzenia = lista.filter(function(r){
-      var o = opisz(r.status);
-      return r.id && o.ok === null && r.status !== 'brak-endpointu';
+      var o = opisz(r.status, r.opis);
+      return r.id && o.ok === null;
     }).slice(0, 10);
     if(!doSprawdzenia.length){ rysuj(); return Promise.resolve(); }
     return Promise.all(doSprawdzenia.map(function(r){
       return pobierzStatus(r.id).then(function(w){
         if(!w) return;
         if(w.brakEndpointu){ ustawStatus(r.id, 'brak-endpointu'); return; }
-        ustawStatus(r.id, String(w.ev || '').toLowerCase(), w.kiedy, w.powod);
+        ustawStatus(r.id, String(w.stan || '').toLowerCase(), w.kiedy, w.opis, w.zdarzenie);
       });
     }));
   }
@@ -7583,13 +7583,13 @@ html, body { -webkit-text-size-adjust: 100% !important; -moz-text-size-adjust: 1
   function wiersz(r){
     var o;
     if(r.status === 'brak-endpointu'){
-      o = { txt:'Brak potwierdzenia — worker nie ma endpointu /status', ok:null };
+      o = { txt:'Brak potwierdzenia — na Cloudflare stoi stara wersja workera', ok:null };
     } else if(r.status === 'przyjete' && !r.id){
       o = { txt:'Przyjęta przez workera — bez ID, nie da się potwierdzić', ok:null };
     } else if(r.status === 'przyjete'){
-      o = { txt:'Przyjęta do wysyłki — czekam na potwierdzenie', ok:null };
+      o = { txt:'Przekazana do wysyłki — czekam na potwierdzenie', ok:null };
     } else {
-      o = opisz(r.status);
+      o = opisz(r.status, r.opis);
     }
     return '<div style="display:flex;gap:8px;align-items:flex-start;padding:7px 0;border-top:1px solid #e8edf5;">'
       + '<span style="font-size:13px;line-height:1.3;">' + ikona(o.ok) + '</span>'
@@ -7599,7 +7599,7 @@ html, body { -webkit-text-size-adjust: 100% !important; -moz-text-size-adjust: 1
       +     esc(r.email) + ' · wysłano ' + esc(czas(r.czas))
       +     (r.doreczono ? ' · potwierdzono ' + esc(czas(r.doreczono)) : '')
       +   '</div>'
-      +   (r.powod ? '<div style="font-size:10px;color:#b3261e;margin-top:2px;">Powód: ' + esc(r.powod) + '</div>' : '')
+      +   (r.zdarzenie ? '<div style="font-size:10px;color:#94a3b8;margin-top:2px;">Zdarzenie u dostawcy: ' + esc(r.zdarzenie) + '</div>' : '')
       + '</div></div>';
   }
 
@@ -7622,9 +7622,9 @@ html, body { -webkit-text-size-adjust: 100% !important; -moz-text-size-adjust: 1
       + lista.map(wiersz).join('')
       + (brakStatusow
           ? '<div style="font-size:10px;color:#8a6d00;margin-top:8px;line-height:1.45;">'
-            + 'Kreator nie dostaje z workera potwierdzeń doręczenia, więc nie wie, czy oferty docierają. '
-            + 'Żeby to naprawić, wgraj <strong>worker/dewax-send.js</strong> z tego repozytorium — dokłada endpoint '
-            + '<code>/status/{id}</code>. Instrukcja: <strong>DIAGNOSTYKA.md</strong>.'
+            + 'Kreator nie dostaje z workera potwierdzeń doręczenia. Na Cloudflare stoi zapewne '
+            + 'stara wersja workera <strong>dewax-send</strong> — nowa (56b9c876) ma endpoint '
+            + '<code>/status/{id}</code>. Szczegóły w <strong>DIAGNOSTYKA.md</strong>.'
             + '</div>'
           : '')
       + '</div>';
@@ -7682,49 +7682,82 @@ html, body { -webkit-text-size-adjust: 100% !important; -moz-text-size-adjust: 1
       return wynik('HubSpot', false, 'Brak połączenia z workerem (' + (e && e.message ? e.message : 'błąd sieci') + ').', 'Worker dewax-hubspot nie odpowiada albo blokuje CORS dla tej domeny.');
     });
   }
-
+  /* Worker dewax-send ma własną diagnostykę: GET /health sprawdza sekrety,
+     połączenie z Resend, nadawcę i ALLOWED_ORIGIN. Pytamy o nią zamiast
+     zgadywać z pustego POST-a — i to samo zapytanie mówi nam, czy na
+     Cloudflare stoi już wersja z endpointem /status. */
   function testWysylka(){
     var url = adresWysylki();
-    if(!url) return Promise.resolve(wynik('Wysyłka maili', false, 'Brak adresu workera wysyłki.', 'Ustaw SEND_PROXY w index.html.'));
-    // Celowo pusty payload: worker ma odpowiedzieć „brak danych" (400).
-    // 400 dowodzi, że worker żyje i przyjął nasz kod dostępu.
-    return (window.dxApiFetch || fetch)(url, {
-      method:'POST',
-      headers:{ 'Content-Type':'application/json' },
-      body: JSON.stringify({ diagnostyka:true })
-    }).then(function(r){
-      if(r.status === 401 || r.status === 403) return wynik('Wysyłka maili', false, 'Worker odrzucił kod dostępu (HTTP ' + r.status + ').', 'Kod z ekranu wejścia nie zgadza się z AUTH_TOKEN w Cloudflare → Workers → dewax-send. To najczęstsza przyczyna cichego braku wysyłki.');
-      if(r.status === 400) return wynik('Wysyłka maili', true, 'Worker żyje i zaakceptował kod dostępu.');
-      if(!r.ok) return wynik('Wysyłka maili', false, 'Worker odpowiedział błędem HTTP ' + r.status + '.', 'Zajrzyj w logi workera dewax-send w Cloudflare.');
-      return wynik('Wysyłka maili', true, 'Worker odpowiada poprawnie.');
-    }).catch(function(e){
-      return wynik('Wysyłka maili', false, 'Brak połączenia z workerem (' + (e && e.message ? e.message : 'błąd sieci') + ').', 'Worker dewax-send nie jest wdrożony albo nie przepuszcza żądań z tej domeny (CORS).');
-    });
-  }
-
-  function testStatusow(){
-    var url = adresWysylki();
-    if(!url) return Promise.resolve(wynik('Potwierdzenia doręczenia', false, 'Brak adresu workera wysyłki.'));
-    return (window.dxApiFetch || fetch)(url.replace(/\/+$/, '') + '/status/diagnostyka', { method:'GET' })
+    if(!url) return Promise.resolve([wynik('Wysyłka ofert', false, 'Brak adresu workera wysyłki.', 'Ustaw SEND_PROXY w index.html.')]);
+    return (window.dxApiFetch || fetch)(url.replace(/\/+$/, '') + '/health', { method:'GET' })
       .then(function(r){
-        if(r.status === 404) return wynik('Potwierdzenia doręczenia', false, 'Worker nie ma endpointu /status/{id}.', 'Wgraj worker/dewax-send.js z repozytorium — bez tego kreator nie wie, czy oferta doszła do klienta.');
-        if(r.status === 401 || r.status === 403) return wynik('Potwierdzenia doręczenia', false, 'Worker odrzucił kod dostępu (HTTP ' + r.status + ').', 'Ten sam AUTH_TOKEN co przy wysyłce.');
-        return wynik('Potwierdzenia doręczenia', true, 'Endpoint /status odpowiada — kreator potrafi potwierdzać doręczenia.');
+        if(r.status === 404){
+          return [wynik('Wysyłka ofert', false,
+            'Na Cloudflare stoi stara wersja workera dewax-send.',
+            'Wgraj wersję 56b9c876 albo nowszą — dopiero ona ma /health i /status, bez nich kreator nie potwierdzi doręczeń.')];
+        }
+        if(r.status === 401 || r.status === 403){
+          return [wynik('Wysyłka ofert', false,
+            'Worker odrzucił kod dostępu (HTTP ' + r.status + ').',
+            'Kod z ekranu wejścia nie zgadza się z sekretem AUTH_TOKEN w Cloudflare → Workers → dewax-send.')];
+        }
+        if(!r.ok){
+          return [wynik('Wysyłka ofert', false, 'Worker odpowiedział błędem HTTP ' + r.status + '.', 'Zajrzyj w logi workera dewax-send w Cloudflare.')];
+        }
+        return r.json().catch(function(){ return null; }).then(function(j){
+          if(!j) return [wynik('Wysyłka ofert', false, 'Worker odpowiedział czymś, co nie jest JSON-em.')];
+          var w = [wynik('Wysyłka ofert', j.ok !== false, j.ok !== false
+            ? 'Worker działa, kod dostępu zaakceptowany, endpoint /status dostępny.'
+            : 'Worker zgłasza problem z konfiguracją — szczegóły poniżej.')];
+          // Kształt /health może się zmieniać razem z workerem, więc nie
+          // zgadujemy nazw pól: pokazujemy, co przyszło.
+          w.push.apply(w, szczegolyHealth(j));
+          return w;
+        });
       })
       .catch(function(e){
-        return wynik('Potwierdzenia doręczenia', false, 'Brak połączenia (' + (e && e.message ? e.message : 'błąd sieci') + ').');
+        return [wynik('Wysyłka ofert', false,
+          'Brak połączenia z workerem (' + (e && e.message ? e.message : 'błąd sieci') + ').',
+          'Worker dewax-send nie odpowiada albo nie przepuszcza żądań z tej domeny (ALLOWED_ORIGIN).')];
       });
   }
+
+  /* Rozpisanie odpowiedzi /health na czytelne wiersze. Pomijamy „ok",
+     bo trafiło już do wiersza nadrzędnego. */
+  function szczegolyHealth(j){
+    var out = [];
+    Object.keys(j).forEach(function(k){
+      if(k === 'ok') return;
+      var v = j[k];
+      if(v && typeof v === 'object') v = JSON.stringify(v);
+      if(typeof v === 'boolean'){
+        out.push(wynik(etykieta(k), v, v ? 'tak' : 'nie'));
+      } else if(v !== '' && v != null){
+        out.push(wynik(etykieta(k), true, String(v)));
+      }
+    });
+    return out;
+  }
+
+  function etykieta(k){
+    var slownik = {
+      resend:'Połączenie z Resend', from:'Nadawca', nadawca:'Nadawca',
+      origin:'Dozwolona domena', allowedOrigin:'Dozwolona domena',
+      braki:'Brakujące sekrety', sekrety:'Sekrety', wersja:'Wersja workera'
+    };
+    return slownik[k] || k;
+  }
+
 
   function testHistorii(){
     var lista = wczytaj();
     if(!lista.length) return wynik('Historia wysyłek', true, 'Brak wysyłek z tego urządzenia — nie ma czego oceniać.');
-    var zle = lista.filter(function(r){ return opisz(r.status).ok === false; }).length;
+    var zle = lista.filter(function(r){ return opisz(r.status, r.opis).ok === false; }).length;
     var bezPotw = lista.filter(function(r){
       return r.status === 'przyjete' || r.status === 'brak-endpointu' || !r.id;
     }).length;
-    if(zle) return wynik('Historia wysyłek', false, zle + ' z ' + lista.length + ' ofert zostało odrzuconych przez serwer klienta.', 'Zajrzyj w powody przy wpisach poniżej — najczęściej to niezweryfikowana domena nadawcy.');
-    if(bezPotw === lista.length) return wynik('Historia wysyłek', false, 'Żadna z ' + lista.length + ' wysyłek nie ma potwierdzenia doręczenia.', 'Kreator nie wie, czy te oferty doszły. Wgraj workera z endpointem /status.');
+    if(zle) return wynik('Historia wysyłek', false, zle + ' z ' + lista.length + ' ofert zostało odrzuconych przez serwer klienta.', 'Zajrzyj w szczegóły przy wpisach poniżej — zdarzenie u dostawcy mówi, dlaczego list wrócił.');
+    if(bezPotw === lista.length) return wynik('Historia wysyłek', false, 'Żadna z ' + lista.length + ' wysyłek nie ma potwierdzenia doręczenia.', 'Kreator nie wie, czy te oferty doszły — najpewniej na Cloudflare stoi stara wersja workera dewax-send.');
     return wynik('Historia wysyłek', true, lista.length - bezPotw + ' z ' + lista.length + ' wysyłek ma potwierdzenie doręczenia.');
   }
 
@@ -7752,7 +7785,9 @@ html, body { -webkit-text-size-adjust: 100% !important; -moz-text-size-adjust: 1
     okno.addEventListener('click', function(e){ if(e.target === okno) okno.remove(); });
     document.getElementById('dxDiagZamknij').addEventListener('click', function(){ okno.remove(); });
 
-    Promise.all([testHubspot(), testWysylka(), testStatusow()]).then(function(w){
+    Promise.all([testHubspot(), testWysylka()]).then(function(czesci){
+      var w = [];
+      czesci.forEach(function(c){ Array.isArray(c) ? w.push.apply(w, c) : w.push(c); });
       w.push(testHistorii());
       var html = w.map(function(t){
         return '<div style="padding:10px 0;border-top:1px solid #e8edf5;">'
@@ -7768,12 +7803,12 @@ html, body { -webkit-text-size-adjust: 100% !important; -moz-text-size-adjust: 1
       var podsum = zle.length
         ? '<div style="background:#fff4e5;border:1px solid #ffd8a8;border-radius:10px;padding:10px 12px;margin-top:12px;'
           + 'font-size:11px;color:#8a4b00;line-height:1.5;">Do naprawy: <strong>' + zle.length + '</strong>. '
-          + 'Kolejność ma znaczenie — zacznij od pierwszego błędu na liście. '
-          + 'Pełny opis każdego przypadku jest w pliku <strong>DIAGNOSTYKA.md</strong> w repozytorium.</div>'
+          + 'Zacznij od pierwszego błędu na liście. '
+          + 'Opis każdego przypadku jest w pliku <strong>DIAGNOSTYKA.md</strong> w repozytorium.</div>'
         : '<div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:10px;padding:10px 12px;margin-top:12px;'
-          + 'font-size:11px;color:#1b5e20;line-height:1.5;">Wszystko odpowiada. Jeśli klienci mimo to nie dostają ofert, '
-          + 'przyczyna leży po stronie dostawcy poczty — sprawdź weryfikację domeny dewax.pl oraz rekordy SPF, DKIM '
-          + 'i DMARC. Krok po kroku w <strong>DIAGNOSTYKA.md</strong>.</div>';
+          + 'font-size:11px;color:#1b5e20;line-height:1.5;">Wszystko działa. Jeśli klient twierdzi, że nie dostał oferty, '
+          + 'sprawdź jej wpis w kronice doręczeń poniżej — przy stanie <strong>Doręczona</strong> list jest w skrzynce '
+          + 'klienta i szukać trzeba u niego, nie w kreatorze.</div>';
 
       var el = document.getElementById('dxDiagWynik');
       if(el) el.innerHTML = html + podsum;

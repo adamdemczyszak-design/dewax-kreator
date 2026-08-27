@@ -1,165 +1,177 @@
-# Dlaczego oferty nie docierają do klientów
+# Kreator DEWAX — co się zmieniło i co trzeba kliknąć
 
-Handlowcy meldują, że kreator pisze „oferta wysłana", a klient maila nie
-dostaje. Ten dokument prowadzi od objawu do przyczyny.
-
-Zacznij od przycisku **„Sprawdź połączenie"** w podglądzie oferty (krok 5,
-obok „Wyślij ofertę"). Sprawdza obie bramki kreatora i mówi wprost, co jest
-zepsute. Poniżej opis każdego przypadku.
+Dokument dla Adama. Trzy rzeczy do zrobienia ręcznie są na końcu, każda
+z gotowym tekstem do skopiowania.
 
 ---
 
-## Skąd w ogóle wzięło się nieporozumienie
+## 1. Maile jednak działają
 
-Kreator kończył pracę na odpowiedzi workera. Worker odpowiada „ok", gdy
-**przyjmie zlecenie** — a nie gdy list wyląduje w skrzynce klienta. Między
-jednym a drugim jest cała droga, na której poczta może list odrzucić.
-Kreator tej drogi nie widział i pisał „wysłana", cokolwiek się dalej działo.
+Sprawdziliśmy to ręcznie i wynik jest jednoznaczny:
 
-Zmienione:
+- domena `dewax.pl` w Resend ma status **Verified**,
+- nadawca to `DEWAX <kontakt@dewax.pl>`,
+- testowa oferta doszła do skrzynki, do folderu Odebrane — nie do spamu,
+- Daria też wysłała ofertę testową i dotarła.
 
-- komunikat po wysyłce brzmi **„przekazana do wysyłki"**, a nie „wysłana",
-- pod treścią maila jest **kronika doręczeń** — co, do kogo, kiedy i z jakim
-  skutkiem,
-- „doręczona" pojawia się dopiero, gdy potwierdzi to dostawca poczty.
+**Nie ruszamy ustawień poczty.** Rekordy SPF, DKIM i DMARC są w porządku
+i nie mają z tym nic wspólnego.
 
-Do działania kroniki potrzebny jest endpoint `GET /status/{id}` w workerze
-`dewax-send`. Gotowy kod: **`worker/dewax-send.js`**. Bez niego kreator
-napisze wprost, że nie wie, czy oferta doszła — zamiast udawać, że doszła.
+Skąd więc meldunki „nie dochodzi"? Stary kreator pisał **„oferta wysłana"**,
+choć wiedział tylko tyle, że worker przyjął zlecenie. Nie miał pojęcia, czy
+list trafił do skrzynki klienta. Maile leżały u klientów nieprzeczytane,
+handlowiec nie miał jak tego sprawdzić i zgłaszał awarię, której nie było.
 
----
-
-## Najczęstsza przyczyna: domena nadawcy
-
-Jeśli w kronice widzisz **„ODRZUCONA przez serwer klienta"**, albo oferty
-lądują klientom w spamie, problem jest po stronie uwierzytelniania poczty.
-Poczta odbiorcy sprawdza, czy nadawca ma prawo pisać w imieniu `dewax.pl`.
-Bez tych rekordów list trafia do spamu albo znika bez śladu.
-
-1. Wejdź na [resend.com/domains](https://resend.com/domains) i sprawdź, czy
-   `dewax.pl` ma status **Verified**. Status „Pending" oznacza, że listy
-   wychodzą, ale nie mają jak się uwierzytelnić.
-2. Resend pokazuje rekordy do wpisania w DNS domeny `dewax.pl`
-   (u operatora, u którego trzymacie domenę):
-   - **DKIM** — rekord `TXT`, podpis kryptograficzny wiadomości,
-   - **SPF** — rekord `TXT` z `include:` wskazanym przez Resend; jeśli macie
-     już SPF (np. od Google Workspace), **nie dodawaj drugiego** — dopisz
-     `include:` do istniejącego. Dwa rekordy SPF unieważniają oba.
-   - **MX** dla subdomeny wysyłkowej, jeśli Resend o niego prosi.
-3. Sprawdź `DMARC` — rekord `TXT` na `_dmarc.dewax.pl`. Przy polityce
-   `p=reject` bez poprawnego SPF i DKIM **wszystkie** oferty są odrzucane po
-   cichu. To wygląda dokładnie tak, jak opisują handlowcy.
-4. Zmiany w DNS potrzebują od kilkunastu minut do kilku godzin.
-
-Sprawdzenie od zewnątrz: [mxtoolbox.com/SuperTool.aspx](https://mxtoolbox.com/SuperTool.aspx)
-— wpisz `dewax.pl` i sprawdź kolejno `SPF`, `DMARC` oraz `TXT` dla nazwy
-wskazanej przez Resend jako DKIM.
-
-> Nie dało się tego sprawdzić przy pisaniu tych zmian — środowisko, w którym
-> powstawały, nie ma dostępu do DNS ani do Cloudflare. To jedyny punkt tej
-> listy oparty na diagnozie, a nie na sprawdzonym fakcie. Jest pierwszy na
-> liście, bo objaw („worker mówi ok, klient nie ma maila") pasuje do niego
-> najlepiej.
-
-### Tryb testowy Resend
-
-Jeśli `FROM_EMAIL` w Cloudflare to `onboarding@resend.dev`, Resend wysyła
-**wyłącznie na Twój własny adres**. Każda oferta do klienta jest odrzucana.
-Ustaw `FROM_EMAIL` na adres w zweryfikowanej domenie, np.
-`DEWAX <oferty@dewax.pl>`.
+Naprawą jest więc pokazywanie prawdy o doręczeniu — i to zrobiliśmy.
 
 ---
 
-## Kod dostępu (HTTP 401)
+## 2. Co teraz widać w kreatorze
 
-Diagnostyka mówi **„Worker odrzucił kod dostępu"**: kod wpisywany przy
-wejściu do kreatora nie zgadza się z sekretem `AUTH_TOKEN`.
+**Po kliknięciu „Wyślij ofertę"** kreator pisze **„przekazana do wysyłki"**.
+Nie „wysłana" — bo w tym momencie jeszcze nie wiadomo, czy doszła.
 
-Cloudflare → Workers → `dewax-send` → Settings → Variables and Secrets.
-Ten sam kod musi być w `dewax-hubspot`. Po zmianie sekretu handlowcy muszą
-wpisać nowy kod przy najbliższym wejściu.
+**Pod treścią maila** jest **kronika doręczeń**. Dla każdej oferty widać, do
+kogo poszła, o której i z jakim skutkiem:
 
----
+| Co widzisz | Co to znaczy |
+|---|---|
+| ✅ Doręczona do skrzynki klienta | List jest u klienta. Sprawa zamknięta. |
+| ⏳ W drodze | Poczta klienta jeszcze nie potwierdziła. Kliknij „Odśwież" za chwilę. |
+| ⏳ Doręczenie opóźnione | Serwer klienta chwilowo nie przyjmuje. Zwykle dochodzi później. |
+| ❌ Odrzucona | Nie dotarła. Sprawdź, czy adres e-mail nie ma literówki. |
+| ❌ Spam | Klient sam oznaczył wiadomość jako spam. |
 
-## Brak połączenia z workerem
+Kreator sam sprawdza status kilka razy po wysyłce. Przycisk **„Odśwież"**
+w kronice sprawdza od razu.
 
-Diagnostyka mówi **„Brak połączenia"**: worker nie jest wdrożony albo nie
-przepuszcza żądań z domeny kreatora (CORS). Ustaw w workerze zmienną
-`ALLOWED_ORIGIN` na adres kreatora i sprawdź, czy worker odpowiada na
-`OPTIONS` — przeglądarka pyta o zgodę przed każdym żądaniem z nagłówkiem
-`X-Dewax-Auth`.
+**Gdy klient mówi, że nie dostał oferty:** zajrzyj do kroniki. Jeśli jest
+tam ✅ **Doręczona** — list jest w jego skrzynce i szukać trzeba u niego,
+nie w kreatorze.
 
----
-
-## Dostęp do klientów dla całego zespołu
-
-### Po stronie kreatora — działa
-
-Lista leadów pobiera z HubSpota wszystkie kontakty, bez filtra po
-właścicielu. Każdy handlowiec widzi w kreatorze każdego klienta.
-Znaczniki „obdzwoniony" są prywatne dla urządzenia i nikomu niczego nie
-ukrywają.
-
-Transakcja bez wybranego handlowca nie jest już zgłaszana jako błąd —
-trafia do HubSpota i jest widoczna dla zespołu. Pole „Ofertę wystawia"
-służy tylko temu, żeby oferta trafiła **dodatkowo** na własną listę
-konkretnej osoby.
-
-### Po stronie HubSpota — do wyklikania
-
-Widoczności rekordów nie da się ustawić z kodu; to uprawnienia użytkownika.
-HubSpot → Settings → Users & Teams → wybierz użytkownika → Edit permissions
-→ CRM → Contacts / Deals → **View: Everything** (zamiast „Owned only"
-i „Team only"). To samo dla Deals, jeśli mają widzieć wszystkie oferty.
-
-Stan portalu `49004516` na dziś: brak zdefiniowanych zespołów, dwa aktywne
-konta — **Adam Demczyszak** i **Małgorzata Kuś**. Przy dwóch osobach i braku
-zespołów wystarczy ustawić obu „View: Everything".
+**Przycisk „Sprawdź połączenie"** obok „Wyślij ofertę" sprawdza bazę
+klientów i wysyłkę ofert, i pisze po polsku, co nie działa.
 
 ---
 
-## Lista handlowców rozjechana z HubSpotem — naprawione
+## 3. Kto wystawia ofertę — cztery podpisy, dwa konta
 
-Lista w `index.html` była wpisana na sztywno i się rozjechała:
+W HubSpocie są dwa konta. Podpisów na ofertach są cztery. Daria pracuje na
+koncie Adama, Romana na koncie Gosi:
 
-| Podpis w kreatorze | Wysyłane ID | Kto to naprawdę |
-|---|---|---|
-| Romana Wojnowska | `76509862` | **Adam Demczyszak** |
-| Małgorzata Kuś | `79601430` | Małgorzata Kuś ✔ |
-| Adam Demczyszak | `79652341` | **nie istnieje w portalu** |
+| Podpis w kreatorze | Konto w HubSpocie |
+|---|---|
+| Adam Demczyszak | Adam Demczyszak |
+| Daria Czajka | Adam Demczyszak |
+| Małgorzata Kuś | Małgorzata Kuś |
+| Romana Wojnowska | Małgorzata Kuś |
 
-Wybranie „Adama Demczyszaka" wysyłało więc nieistniejące ID i HubSpot
-odrzucał przypisanie. Wybranie „Romany Wojnowskiej" przypisywało transakcję
-Adamowi. **Romany Wojnowskiej nie ma wśród właścicieli w HubSpocie** — jeśli
-ma wystawiać oferty, trzeba jej najpierw założyć konto.
+Nowych kont nie zakładamy. Kreator rozróżnia podpisy wewnętrznie, a do
+HubSpota wysyła numer właściwego konta.
 
-Lista jest teraz pobierana z HubSpota (`GET /owners`), a wpisane w kodzie ID
-zostały poprawione i służą już tylko jako awaryjny fallback. Endpoint trzeba
-dołożyć do workera `dewax-hubspot` — kod w
-**`worker/dewax-hubspot-owners.js`**.
+Wcześniej ta lista była pomylona: pozycja podpisana „Romana Wojnowska"
+wysyłała numer konta Adama, a pozycja „Adam Demczyszak" wysyłała numer,
+którego w HubSpocie w ogóle nie ma. Dlatego transakcje nie trafiały tam,
+gdzie powinny. Teraz numery się zgadzają.
+
+Poprawiony jest też komunikat *„transakcja zapisana, ale nie udało się jej
+odnaleźć"*. Kreator zapisywał transakcję, a zaraz potem szukał jej po
+nazwie, żeby dopisać handlowca — a HubSpot potrzebuje kilku sekund, zanim
+nowa transakcja pojawi się w wyszukiwarce. Teraz handlowiec jest wysyłany
+od razu razem z transakcją, więc nie ma czego szukać.
+
+### Uwaga: każdy handlowiec musi raz wybrać się z listy
+
+Po tej zmianie pole **„Ofertę wystawia"** będzie puste, także u osób, które
+wcześniej coś wybrały. Trzeba wybrać się z listy jeden raz — potem kreator
+pamięta.
+
+**Gotowa wiadomość do handlowców** (skopiuj i wyślij):
+
+> Cześć, zaktualizowaliśmy kreator ofert.
+>
+> Przy pierwszej ofercie po zmianie wybierzcie siebie w polu **„Ofertę
+> wystawia"** — lista jest nad danymi klienta. Wystarczy raz, potem kreator
+> będzie pamiętał.
+>
+> Na liście są cztery podpisy: Adam, Daria, Gosia i Romana.
+>
+> Druga zmiana: po wysłaniu oferty kreator pisze teraz **„przekazana do
+> wysyłki"**, a pod treścią maila pokazuje, czy oferta faktycznie dotarła do
+> klienta i o której godzinie. Jak klient mówi, że nic nie dostał —
+> sprawdźcie tam najpierw.
 
 ---
 
-## Właściciel transakcji gubiony przy zapisie — naprawione
+## 4. DO ZROBIENIA: dostęp do wszystkich klientów w HubSpocie
 
-Komunikat *„transakcja zapisana, ale nie udało się jej odnaleźć, żeby
-przypisać właściciela"* brał się z wyścigu: kreator tworzył transakcję,
-a zaraz potem szukał jej po nazwie, żeby dopisać właściciela. Indeks
-wyszukiwania HubSpota nie widzi świeżo utworzonego obiektu przez kilka
-sekund, więc wyszukiwanie zwracało pustkę.
+To jedyna rzecz, której nie da się ustawić z kodu. Trzeba wyklikać
+w HubSpocie, osobno dla Adama i dla Gosi.
 
-Właściciel jest teraz wysyłany **razem z żądaniem tworzącym transakcję**,
-gdzie indeks nie gra roli. Wyszukiwanie po nazwie zostało jako plan B dla
-starszych transakcji i ponawia próbę trzy razy co 1,5 sekundy.
+HubSpot jest po angielsku, więc poniżej podane są napisy, które zobaczysz
+na ekranie.
+
+**Krok po kroku:**
+
+1. Wejdź na **app.hubspot.com** i zaloguj się.
+2. Kliknij **ikonę zębatki** w prawym górnym rogu (to jest „Settings",
+   czyli ustawienia).
+3. W menu po lewej znajdź **Users & Teams** (użytkownicy i zespoły)
+   i kliknij.
+4. Zobaczysz listę osób. Kliknij na **Adam Demczyszak**.
+5. Po prawej otworzy się panel. Kliknij **Edit permissions**
+   (edytuj uprawnienia).
+6. Wybierz zakładkę **CRM**.
+7. Znajdź wiersz **Contacts** (kontakty). Przy pozycji **View** (widok)
+   zaznacz **Everything** (wszystko). Nie „Owned only", nie „Team only".
+8. Znajdź wiersz **Deals** (transakcje). Przy **View** też zaznacz
+   **Everything**.
+9. Kliknij **Save** (zapisz) na dole.
+10. **Powtórz kroki 4–9 dla Małgorzaty Kuś.**
+
+Po tym każdy widzi wszystkich klientów i wszystkie oferty.
+
+W kreatorze dostęp już działa — lista leadów pokazuje wszystkie kontakty,
+bez względu na to, czyj to klient. Transakcja bez wybranego handlowca też
+nie jest już zgłaszana jako błąd: trafia do HubSpota i widzi ją zespół.
 
 ---
 
-## Kolejność napraw
+## 5. Worker `dewax-send` — gdzie jest jego kod
 
-1. **Wgraj `worker/dewax-send.js`** — bez `/status/{id}` dalej nie wiadomo,
-   czy oferty docierają. To jedyny sposób, żeby przestać zgadywać.
-2. **Sprawdź weryfikację `dewax.pl` w Resend** oraz SPF, DKIM i DMARC.
-3. **Wgraj `worker/dewax-hubspot-owners.js`** — lista handlowców przestaje
-   się rozjeżdżać z HubSpotem.
-4. **Ustaw „View: Everything"** obu handlowcom w HubSpocie.
-5. Wyślij ofertę testową na własny adres i sprawdź kronikę doręczeń.
+**Kodu workera nie ma w tym repozytorium** i nie należy go tu wstawiać.
+Worker jest wdrażany ręcznie przez panel Cloudflare i to tam jest jedyna
+prawdziwa wersja. Kopia w repozytorium tylko rozjeżdżałaby się z produkcją
+i myliła przy kolejnych naprawach.
+
+Aktualnie wdrożona wersja: **56b9c876**. Obsługuje:
+
+| Adres | Do czego służy |
+|---|---|
+| `POST /` | wysyłka oferty (działa też ze starym kreatorem) |
+| `GET /status/{id}` | czy oferta doszła — zwraca `stan` i `opis` |
+| `GET /health` | diagnostyka: sekrety, połączenie z Resend, nadawca, dozwolona domena |
+
+Możliwe stany zwracane przez `/status/{id}`:
+`dostarczona`, `w_drodze`, `opozniona`, `odrzucona`, `spam`, `nieznany`.
+
+Kod dostępu handlowca idzie w nagłówku `X-Dewax-Auth`.
+
+Kreator odpytuje dokładnie te trzy adresy i czyta dokładnie te pola.
+**Jeśli worker będzie kiedyś zmieniany, trzeba sprawdzić, czy nazwy pól
+się zgadzają** — kreator nie zgaduje ich na zapas.
+
+Worker `dewax-hubspot` (baza klientów) działa bez zmian i nie był ruszany.
+
+---
+
+## 6. Gdyby coś przestało działać
+
+Kliknij **„Sprawdź połączenie"** w podglądzie oferty. Napisze po polsku,
+co jest zepsute. Najczęstsze przypadki:
+
+| Komunikat | Co zrobić |
+|---|---|
+| „Worker odrzucił kod dostępu" | Kod wpisywany przy wejściu do kreatora nie zgadza się z ustawieniem `AUTH_TOKEN` w Cloudflare. |
+| „Na Cloudflare stoi stara wersja workera" | Wdrożona wersja jest starsza niż 56b9c876 i nie umie potwierdzać doręczeń. |
+| „Brak połączenia z workerem" | Worker nie odpowiada albo `ALLOWED_ORIGIN` nie zgadza się z adresem kreatora (`https://dewax-kreator.netlify.app`). |
