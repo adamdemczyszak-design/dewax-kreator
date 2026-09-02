@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kreator Dewax - Dobór Pompy Ciepła</title>
+    <!-- DEWAX-KONFIG -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
@@ -938,19 +939,19 @@
 <body class="min-h-screen p-0 md:p-8 flex flex-col items-center">
 
     <!-- ===== EKRAN KODU DOSTEPU (DX_AUTH) ===== -->
+    <!-- ===== EKRAN BRAKU KONFIGURACJI =====
+         Zastepuje dawny ekran kodu dostepu. Handlowiec nie wpisuje juz nic:
+         kody wstrzykuje brama Netlify po zalogowaniu. Ten ekran pokazuje sie
+         wylacznie wtedy, gdy strona zostala otwarta z pominieciem bramy albo
+         gdy w panelu Netlify brakuje zmiennej. -->
     <div id="dxAuthGate" style="position:fixed;inset:0;z-index:99999;background:linear-gradient(135deg,#0f1a3e 0%,#1e293b 100%);display:none;align-items:center;justify-content:center;padding:20px;">
-        <div style="width:100%;max-width:390px;background:#fff;border-radius:22px;padding:34px 30px;box-shadow:0 30px 70px rgba(0,0,0,.5);font-family:'Inter',system-ui,sans-serif;">
+        <div style="width:100%;max-width:420px;background:#fff;border-radius:22px;padding:34px 30px;box-shadow:0 30px 70px rgba(0,0,0,.5);font-family:&#39;Inter&#39;,system-ui,sans-serif;">
             <p style="font-size:10px;letter-spacing:.18em;text-transform:uppercase;font-weight:800;color:#3b5dc9;margin:0 0 6px;">DEWAX Kreator</p>
-            <h2 style="font-size:22px;font-weight:900;color:#0f1a3e;margin:0 0 8px;">Kod dost&#281;pu</h2>
-            <p style="font-size:12px;line-height:1.55;color:#64748b;font-weight:500;margin:0 0 18px;">Kreator pracuje na danych klient&#243;w i wysy&#322;a oferty. Podaj kod dost&#281;pu &#8212; bez niego serwer nie wyda &#380;adnych danych.</p>
-            <input id="dxAuthInput" type="password" autocomplete="off" spellcheck="false" placeholder="Kod dost&#281;pu" style="width:100%;box-sizing:border-box;border:2px solid #e2e8f0;border-radius:12px;padding:13px 14px;font-size:15px;font-weight:700;color:#0f1a3e;outline:none;letter-spacing:.05em;">
-            <label style="display:flex;align-items:center;gap:8px;margin:14px 0 18px;font-size:11px;font-weight:700;color:#64748b;cursor:pointer;">
-                <input type="checkbox" id="dxAuthRemember" checked style="width:15px;height:15px;accent-color:#3b5dc9;cursor:pointer;">
-                Zapami&#281;taj na tym urz&#261;dzeniu
-            </label>
-            <button id="dxAuthBtn" type="button" style="width:100%;background:linear-gradient(135deg,#0f1a3e,#3b5dc9);color:#fff;border:none;border-radius:12px;padding:14px;font-size:13px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;cursor:pointer;">Wejd&#378; do kreatora</button>
+            <h2 style="font-size:22px;font-weight:900;color:#0f1a3e;margin:0 0 8px;">Kreator nie ma konfiguracji</h2>
+            <p style="font-size:12px;line-height:1.55;color:#64748b;font-weight:500;margin:0 0 12px;">Ta strona zosta&#322;a otwarta z pomini&#281;ciem bramy Netlify, wi&#281;c nie dosta&#322;a kod&#243;w dost&#281;pu do Worker&#243;w. &#379;aden odczyt ani zapis danych klient&#243;w si&#281; nie uda.</p>
+            <p style="font-size:12px;line-height:1.55;color:#64748b;font-weight:500;margin:0 0 4px;">Wejd&#378; pod adresem <b>dewax-kreator.netlify.app</b>. Je&#347;li widzisz to w&#322;a&#347;nie tam &#8212; w panelu Netlify brakuje zmiennej <b id="dxAuthBrak">DEWAX_AUTH_TOKEN</b>.</p>
             <p id="dxAuthErr" style="display:none;margin:14px 0 0;font-size:11.5px;font-weight:700;color:#b3261e;line-height:1.5;"></p>
-            <p style="margin:16px 0 0;font-size:10px;color:#94a3b8;font-weight:600;line-height:1.5;">Kod nie jest zapisany w kodzie strony. Weryfikuje go serwer (Cloudflare Worker).</p>
+            <p style="margin:16px 0 0;font-size:10px;color:#94a3b8;font-weight:600;line-height:1.5;">Kod&#243;w dost&#281;pu nie ma w kodzie strony i nie wpisuje ich cz&#322;owiek. Podstawia je brama, a sprawdza serwer (Cloudflare Worker).</p>
         </div>
     </div>
 
@@ -1892,75 +1893,76 @@
         }
 
         // ===================== DOSTĘP DO KREATORA (DX_AUTH) =====================
-        // Kod dostępu NIE jest zapisany w kodzie strony. Handlowiec podaje go przy
-        // wejściu, a kreator dokłada go do każdego wywołania obu Workerów
-        // (HubSpot + wysyłka oferty). Prawdziwą kontrolę robi serwer — Worker
-        // porównuje kod z sekretem AUTH_TOKEN i bez niego zwraca 401.
+        // CO ZMIENIONO I DLACZEGO (02.09.2026)
+        //
+        // Koniec z ręcznym wpisywaniem kodu. Kody dostępu do Workerów wstrzykuje
+        // teraz brama brzegowa Netlify — dokładnie tak samo jak w kokpicie.
+        // Handlowiec loguje się raz, do bramy, i już nigdy nie widzi żadnego kodu.
+        //
+        // Powód: kod wpisywany ręcznie musiał komuś zostać podany, a potem żył
+        // w localStorage na wszystkich urządzeniach, w notatkach i w SMS-ach.
+        // Unieważnienie takiego kodu wymagało obdzwonienia ludzi. Teraz wymiana
+        // kodu to zmiana jednej zmiennej w panelu Netlify.
+        //
+        // Kody są dwa, osobne: kodWorkera do dewax-hubspot i kodSend do
+        // dewax-send. Wyciek jednego nie otwiera drugiego.
+        const DEWAX_KONFIG = (typeof window !== 'undefined' && window.DEWAX_KONFIG) || {};
         const DX_AUTH = {
-            KEY: 'dewax_access_code',
-            _code: '',
-            get: function(){
-                if(this._code) return this._code;
-                try { this._code = sessionStorage.getItem(this.KEY) || localStorage.getItem(this.KEY) || ''; }
-                catch(e){ this._code = ''; }
-                return this._code;
-            },
-            set: function(code, remember){
-                this._code = String(code || '').trim();
-                try {
-                    sessionStorage.setItem(this.KEY, this._code);
-                    if(remember) localStorage.setItem(this.KEY, this._code);
-                    else localStorage.removeItem(this.KEY);
-                } catch(e){}
-            },
-            clear: function(){
-                this._code = '';
-                try { sessionStorage.removeItem(this.KEY); localStorage.removeItem(this.KEY); } catch(e){}
-            },
+            // Zostaje jako obiekt o tej samej nazwie i tych samych metodach,
+            // bo woła go kilka miejsc w pliku. Zmienia się tylko to, skąd
+            // bierze kod: z bramy, a nie od użytkownika.
+            get: function(){ return DEWAX_KONFIG.kodWorkera || ''; },
+            getSend: function(){ return DEWAX_KONFIG.kodSend || ''; },
+            // Nie ma już czego zapisywać ani czyszczyć — zostawiamy puste
+            // metody, żeby stare wywołania nie wysypywały strony.
+            set: function(){},
+            clear: function(){},
             gate: function(show){
                 var g = document.getElementById('dxAuthGate');
                 if(g) g.style.display = show ? 'flex' : 'none';
-                if(show){
-                    var i = document.getElementById('dxAuthInput');
-                    if(i){ i.value = ''; setTimeout(function(){ try{ i.focus(); }catch(e){} }, 60); }
-                }
             },
-            // Lekkie zapytanie do Workera HubSpot — jedyny wiarygodny test kodu.
-            verify: async function(code){
+            // Lekkie zapytanie do Workera HubSpot — sprawdza, czy kod z bramy
+            // zgadza się z sekretem Workera.
+            verify: async function(){
+                var code = DX_AUTH.get();
+                if(!code) return false;
                 try {
                     var r = await fetch(LEADS.hubspotProxy + '/search', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'X-Dewax-Auth': code },
-                        body: JSON.stringify({ limit: 1, properties: ['email'], token: code })
+                        body: JSON.stringify({ limit: 1, properties: ['email'] })
                     });
                     if(r.status === 401 || r.status === 403) return false;
                     return r.ok;
                 } catch(e){ return false; }
             },
-            // Worker odrzucił kod w trakcie pracy — wracamy na ekran logowania.
+            // Worker odrzucił kod w trakcie pracy. Użytkownik nie ma jak tego
+            // naprawić — to niezgodność zmiennych między Netlify a Cloudflare.
             reject: function(){
-                this.clear();
                 this.gate(true);
                 var e = document.getElementById('dxAuthErr');
-                if(e){ e.textContent = 'Kod stracił ważność albo został zmieniony. Podaj aktualny.'; e.style.display = 'block'; }
+                if(e){
+                    e.textContent = 'Worker odrzucił kod z bramy. Zmienna DEWAX_AUTH_TOKEN w Netlify nie zgadza się z sekretem AUTH_TOKEN_HUBSPOT w Cloudflare.';
+                    e.style.display = 'block';
+                }
             }
         };
         window.DX_AUTH = DX_AUTH;
 
-        // Każde wywołanie Workerów DEWAX przechodzi tędy: kod ląduje w nagłówku
-        // i w JSON-ie, a 401/403 od razu wywołuje ekran kodu zamiast cichej awarii.
+        // Każde wywołanie Workerów DEWAX przechodzi tędy. Kod idzie wyłącznie
+        // w nagłówku — w treści JSON-a lądował w logach pośredników — i jest
+        // dobierany do adresu: inny Worker, inny kod.
+        function dxKodDlaAdresu(url){
+            return String(url || '').indexOf('dewax-send') >= 0 ? DX_AUTH.getSend() : DX_AUTH.get();
+        }
         async function dxApiFetch(url, opts){
             var o = Object.assign({}, opts || {});
-            var code = DX_AUTH.get();
-            o.headers = Object.assign({}, o.headers || {}, { 'X-Dewax-Auth': code });
-            if(typeof o.body === 'string' && o.body.charAt(0) === '{'){
-                try {
-                    var j = JSON.parse(o.body);
-                    if(j && typeof j === 'object' && j.token === undefined){ j.token = code; o.body = JSON.stringify(j); }
-                } catch(e){}
-            }
+            o.headers = Object.assign({}, o.headers || {}, { 'X-Dewax-Auth': dxKodDlaAdresu(url) });
             var r = await fetch(url, o);
-            if(r.status === 401 || r.status === 403) DX_AUTH.reject();
+            // 401/403 z Workera HubSpota oznacza rozjazd konfiguracji i zatrzymuje
+            // pracę. Z Workera wysyłki — nie: oferta jest policzona, a wysyłka ma
+            // własny tryb awaryjny (pobierz PDF i otwórz Gmaila).
+            if((r.status === 401 || r.status === 403) && String(url || '').indexOf('dewax-send') < 0) DX_AUTH.reject();
             return r;
         }
         window.dxApiFetch = dxApiFetch;
@@ -2011,9 +2013,11 @@
         }
         // === AUTO-WYSYŁKA OFERTY PDF E-MAILEM (przez Cloudflare Worker) ===
         // Po wdrożeniu Workera wklej jego adres poniżej. Puste = stary tryb (pobierz PDF + Gmail).
+        // Kod do wysyłki, nie do HubSpota. Wcześniej to był ten sam ciąg, więc
+        // token bazy kontaktów wędrował w treści każdego żądania wysyłkowego.
         const SEND_OFFER = {
             url: SEND_PROXY,
-            get token(){ return DX_AUTH.get(); }
+            get token(){ return DX_AUTH.getSend(); }
         };
 
         // === SZYBKI KONTAKT Z LEADEM (dzwonienie + SMS ocieplający) ===
@@ -4111,43 +4115,33 @@ thermokrafft.pl`;
         initApp();
 
         // ===== EKRAN KODU DOSTĘPU — obsługa =====
+        // Start kreatora. Nie ma juz formularza kodu - sprawdzamy tylko, czy
+        // brama podala kody i czy Worker je uznaje.
         (function dxAuthBoot(){
-            var gate  = document.getElementById('dxAuthGate');
-            var input = document.getElementById('dxAuthInput');
-            var btn   = document.getElementById('dxAuthBtn');
-            var err   = document.getElementById('dxAuthErr');
-            var rem   = document.getElementById('dxAuthRemember');
-            if(!gate || !input || !btn) return;
+            var brak = [];
+            if(!DX_AUTH.get())     brak.push('DEWAX_AUTH_TOKEN');
+            if(!DX_AUTH.getSend()) brak.push('DEWAX_SEND_TOKEN');
 
-            function showErr(msg){ err.textContent = msg; err.style.display = 'block'; }
-            function busy(on){
-                btn.disabled = on;
-                btn.textContent = on ? 'Sprawdzam kod…' : 'Wejdź do kreatora';
-                btn.style.opacity = on ? '.6' : '1';
-            }
-
-            async function submit(){
-                var code = (input.value || '').trim();
-                if(!code){ showErr('Wpisz kod dostępu.'); return; }
-                err.style.display = 'none';
-                busy(true);
-                var ok = await DX_AUTH.verify(code);
-                busy(false);
-                if(!ok){ showErr('Kod niepoprawny albo serwer go nie uznał. Sprawdź i spróbuj ponownie.'); return; }
-                DX_AUTH.set(code, rem && rem.checked);
-                DX_AUTH.gate(false);
-                try { loadLeads(true, true); } catch(e){}
-            }
-
-            btn.addEventListener('click', submit);
-            input.addEventListener('keydown', function(e){ if(e.key === 'Enter') submit(); });
-
-            // Start: brak kodu → ekran logowania. Jest kod → cicha weryfikacja w tle.
+            // Brak kodu do HubSpota zatrzymuje kreator - bez niego nie ma
+            // leadow ani zapisu transakcji. Brak kodu do wysylki nie zatrzymuje:
+            // oferte da sie policzyc i wydrukowac, a wysylka ma tryb awaryjny.
             if(!DX_AUTH.get()){
+                var pole = document.getElementById('dxAuthBrak');
+                if(pole) pole.textContent = brak.join(', ');
                 DX_AUTH.gate(true);
-            } else {
-                DX_AUTH.verify(DX_AUTH.get()).then(function(ok){ if(!ok) DX_AUTH.reject(); });
+                return;
             }
+            if(!DX_AUTH.getSend()){
+                console.warn('DEWAX: brak DEWAX_SEND_TOKEN - wysylka oferty zejdzie na tryb awaryjny (PDF plus Gmail).');
+            }
+
+            // Cicha weryfikacja w tle: kod jest, ale moze nie pasowac do sekretu
+            // Workera. Wtedy DX_AUTH.reject() pokazuje, ktore dwie wartosci sie
+            // rozjechaly, zamiast zostawiac pusta liste leadow bez wyjasnienia.
+            DX_AUTH.verify().then(function(ok){
+                if(!ok){ DX_AUTH.reject(); return; }
+                try { loadLeads(true, true); } catch(e){}
+            });
         })();
 
         // === GENEROWANIE UMOWY DOCX ===
