@@ -1,15 +1,15 @@
 {
   "wersja": "pub-2026.09.1",
   "data": "2026-09-02",
-  "uwaga": "CENNIK PUBLICZNY. Uproszczony, tylko dla konfiguratora klienta. Nie zawiera zadnej stawki jednostkowej z cennika zespolu - test core/test-rozdzielnosci.mjs to sprawdza. Wartosci typowe sa wyprowadzone z prawdziwych wycen dla domow referencyjnych i zaokraglone tak, zeby nie dalo sie z nich odtworzyc cen zakupu.",
+  "uwaga": "CENNIK PUBLICZNY. Uproszczony, tylko dla konfiguratora klienta. Nie zawiera żadnej stawki jednostkowej z cennika zespołu - pilnuje tego core/test-rozdzielnosci.mjs. Wartości typowe są wyprowadzone z prawdziwych wycen domów referencyjnych i zaokrąglone tak, żeby nie dało się z nich odtworzyć cen zakupu.",
   "czescPewna": {
-    "opis": "Pompa ciepla, montaz i instalacja wewnetrzna. Ta czesc jest przewidywalna, bo nie zalezy od tego, co jest pod dzialka.",
+    "opis": "Pompa ciepła, montaż i instalacja wewnętrzna. Ta część jest przewidywalna, bo nie zależy od tego, co jest pod działką.",
     "zawiera": [
-      "gruntowa pompa ciepla z osprzetem",
+      "gruntowa pompa ciepła z osprzętem",
       "zasobnik ciepłej wody i bufor",
-      "montaz w kotlowni, podlaczenie hydrauliczne i elektryczne",
+      "montaż w kotłowni, podłączenie hydrauliczne i elektryczne",
       "uruchomienie i konfiguracja sterowania",
-      "transport i materialy"
+      "transport i materiały"
     ],
     "rozrzut": 0.09,
     "dopłataIstniejacy": 4000,
@@ -41,16 +41,16 @@
       }
     ],
     "powyzejPasmaM2": 300,
-    "powyzejPasmaTekst": "Dom powyzej 300 m2 wyceniamy indywidualnie - przy tej wielkosci roznice miedzy budynkami sa wieksze niz jakiekolwiek widelki.",
+    "powyzejPasmaTekst": "Dom powyżej 300 m² wyceniamy indywidualnie - przy tej wielkości różnice między budynkami są większe niż jakiekolwiek widełki.",
     "opcje": [
       {
         "klucz": "cwuPowiekszona",
-        "nazwa": "wiekszy zasobnik cieplej wody",
+        "nazwa": "większy zasobnik ciepłej wody",
         "brutto": 2000
       },
       {
         "klucz": "chlodzenie",
-        "nazwa": "chlodzenie pasywne latem",
+        "nazwa": "chłodzenie pasywne latem",
         "brutto": 6500
       },
       {
@@ -66,15 +66,15 @@
     "A": {
       "kod": "A",
       "nazwa": "grunt korzystny",
-      "opis": "Wilgotne piaski i gliny, plytki poziom wod. Grunt oddaje cieplo latwo, wiec odwiert moze byc krotszy.",
+      "opis": "Wilgotne piaski i gliny, płytki poziom wód. Grunt oddaje ciepło łatwo, więc odwiert może być krótszy.",
       "mbNaKw": 21,
       "stawkaMbBrutto": 145,
       "rozrzut": 0.18
     },
     "B": {
       "kod": "B",
-      "nazwa": "grunt przecietny",
-      "opis": "Typowe warunki dla wiekszosci Polski nizinnej. Mieszane warstwy piasku i gliny.",
+      "nazwa": "grunt przeciętny",
+      "opis": "Typowe warunki dla większości Polski nizinnej, mieszane warstwy piasku i gliny.",
       "mbNaKw": 24,
       "stawkaMbBrutto": 162,
       "rozrzut": 0.2
@@ -82,15 +82,15 @@
     "C": {
       "kod": "C",
       "nazwa": "grunt trudny",
-      "opis": "Suche piaski, zwiry albo skala. Wiercenie idzie wolniej, a metr odwiertu daje mniej ciepla.",
+      "opis": "Suche piaski, żwiry albo skała. Wiercenie idzie wolniej, a metr odwiertu daje mniej ciepła.",
       "mbNaKw": 27,
       "stawkaMbBrutto": 182,
       "rozrzut": 0.25
     },
     "D": {
       "kod": "D",
-      "nazwa": "grunt wymagajacy rozpoznania",
-      "opis": "Rejon o duzej zmiennosci albo o slabym rozpoznaniu geologicznym. Tu widelki sa najszersze i najszybciej zwezaja sie po rozpoznaniu.",
+      "nazwa": "grunt wymagający rozpoznania",
+      "opis": "Rejon o dużej zmienności albo o słabym rozpoznaniu geologicznym. Tu widełki są najszersze i najszybciej zwężają się po rozpoznaniu.",
       "mbNaKw": 30,
       "stawkaMbBrutto": 205,
       "rozrzut": 0.3
@@ -98,35 +98,35 @@
   },
   "dotacja": {
     "nowy": {
-      "nazwa": "Moje Cieplo",
+      "nazwa": "Moje Ciepło",
       "udzial": 0.3,
       "maks": 21000,
-      "zastrzezenie": "Szacunek. O przyznaniu i wysokosci decyduje NFOSiGW na podstawie wniosku, nie DEWAX. Program moze zmienic warunki albo wyczerpac budzet."
+      "zastrzezenie": "Szacunek. O przyznaniu i wysokości decyduje NFOŚiGW na podstawie wniosku, nie DEWAX. Program może zmienić warunki albo wyczerpać budżet."
     },
     "istniejacy": {
       "nazwa": "Czyste Powietrze",
       "udzial": 0.35,
       "maks": 31500,
-      "zastrzezenie": "Szacunek dla najwyzszego poziomu dofinansowania. Rzeczywista kwota zalezy od dochodu w gospodarstwie domowym i od decyzji WFOSiGW, nie od DEWAX."
+      "zastrzezenie": "Szacunek dla najwyższego poziomu dofinansowania. Rzeczywista kwota zależy od dochodu w gospodarstwie domowym i od decyzji WFOŚiGW, nie od DEWAX."
     }
   },
   "eksploatacja": {
-    "opis": "Szacunkowy roczny koszt ogrzewania i cieplej wody. Liczony dla srednich cen energii z II kwartalu 2026 i dla przecietnego sezonu grzewczego.",
+    "opis": "Szacunkowy roczny koszt ogrzewania i ciepłej wody. Liczony dla średnich cen energii z II kwartału 2026 i dla przeciętnego sezonu grzewczego.",
     "cenaPraduZlKwh": 0.89,
     "scopTypowy": 4.6,
     "porownanie": {
       "gaz": {
-        "nazwa": "kociol gazowy kondensacyjny",
+        "nazwa": "kocioł gazowy kondensacyjny",
         "cenaZlKwh": 0.36,
         "sprawnosc": 0.91
       },
       "pelet": {
-        "nazwa": "kociol na pelet",
+        "nazwa": "kocioł na pelet",
         "cenaZlKwh": 0.37,
         "sprawnosc": 0.84
       },
       "wegiel": {
-        "nazwa": "kociol na ekogroszek",
+        "nazwa": "kocioł na ekogroszek",
         "cenaZlKwh": 0.22,
         "sprawnosc": 0.64
       },
@@ -136,30 +136,30 @@
         "sprawnosc": 1
       }
     },
-    "zastrzezenie": "Rzeczywisty rachunek zalezy od temperatury w domu, przyzwyczajen domownikow, pogody i taryfy. Nie podajemy rocznego rachunku w zlotowkach jako obietnicy."
+    "zastrzezenie": "Rzeczywisty rachunek zależy od temperatury w domu, przyzwyczajeń domowników, pogody i taryfy. Nie podajemy rocznego rachunku w złotówkach jako obietnicy."
   },
   "kiedySieNieOplaca": [
     {
-      "tytul": "Dom, ktory dopiero bedzie ocieplany",
-      "tresc": "Pompa gruntowa dobiera sie do zapotrzebowania budynku. Jesli za rok albo dwa planujesz ocieplenie albo wymiane okien, dobrana dzis pompa bedzie za duza - a za duza pompa pracuje gorzej i kosztuje wiecej niz trzeba. Warto najpierw ocieplic, potem wyceniac."
+      "tytul": "Dom, który dopiero będzie ocieplany",
+      "tresc": "Pompę gruntową dobiera się do zapotrzebowania budynku. Jeśli za rok albo dwa planujesz ocieplenie albo wymianę okien, dobrana dziś pompa będzie za duża - a za duża pompa pracuje gorzej i kosztuje więcej, niż trzeba. Warto najpierw ocieplić, potem wyceniać."
     },
     {
-      "tytul": "Dzialka bez miejsca albo bez dojazdu dla wiertnicy",
-      "tresc": "Wiertnica potrzebuje okolo 3 m szerokosci przejazdu i miejsca do pracy przy odwiercie. Jesli dojazdu nie ma, pozostaje kolektor poziomy - a ten wymaga duzej wolnej powierzchni dzialki. Gdy nie ma ani jednego, ani drugiego, gruntowa pompa po prostu nie wchodzi w gre i uczciwiej powiedziec to od razu."
+      "tytul": "Działka bez miejsca albo bez dojazdu dla wiertnicy",
+      "tresc": "Wiertnica potrzebuje około 3 m szerokości przejazdu i miejsca do pracy przy odwiercie. Jeśli dojazdu nie ma, zostaje kolektor poziomy - a ten wymaga dużej wolnej powierzchni działki. Gdy nie ma ani jednego, ani drugiego, gruntowa pompa po prostu nie wchodzi w grę i uczciwiej powiedzieć to od razu."
     },
     {
-      "tytul": "Dom uzywany sezonowo albo z bardzo malym zuzyciem",
-      "tresc": "Gruntowa pompa jest drozsza na starcie od powietrznej wlasnie z powodu dolnego zrodla. Ta roznica zwraca sie przez lata nizszymi kosztami eksploatacji. W domu ogrzewanym kilka tygodni w roku albo o bardzo malym zapotrzebowaniu ta roznica nie zdazy sie zwrocic i tanszym rozwiazaniem zostaje pompa powietrzna."
+      "tytul": "Dom używany sezonowo albo z bardzo małym zużyciem",
+      "tresc": "Gruntowa pompa jest droższa na starcie od powietrznej właśnie z powodu dolnego źródła. Ta różnica zwraca się przez lata niższymi kosztami eksploatacji. W domu ogrzewanym kilka tygodni w roku albo o bardzo małym zapotrzebowaniu nie zdąży się zwrócić i tańszym rozwiązaniem zostaje pompa powietrzna."
     }
   ],
   "wazneDni": 30,
-  "zastrzezenie": "Kalkulacja orientacyjna. Nie stanowi oferty w rozumieniu art. 66 Kodeksu cywilnego. Ceny brutto. Ostateczna cena zalezy od rozpoznania gruntu, stanu instalacji wewnetrznej, dostepu na dzialce i wybranego wyposazenia.",
+  "zastrzezenie": "Kalkulacja orientacyjna. Nie stanowi oferty w rozumieniu art. 66 Kodeksu cywilnego. Ceny brutto, stawka VAT 8% dla budynku mieszkalnego. Ostateczna cena zależy od rozpoznania gruntu, stanu instalacji wewnętrznej, dostępu na działkę i wybranego wyposażenia.",
   "coZmieniaCene": [
-    "rzeczywista wydajnosc gruntu na dzialce - wychodzi po rozpoznaniu",
-    "stan i typ instalacji wewnetrznej (podlogowka czy grzejniki, srednice, rozdzielacze)",
-    "dostep na dzialke dla wiertnicy i odleglosc odwiertu od budynku",
-    "stan kotlowni i to, co trzeba w niej przerobic",
-    "wybrany zasobnik cieplej wody i wyposazenie dodatkowe",
-    "termin realizacji i ceny materialow w dniu zamowienia"
+    "rzeczywista wydajność gruntu na działce - wychodzi po rozpoznaniu",
+    "stan i typ instalacji wewnętrznej (podłogówka czy grzejniki, średnice, rozdzielacze)",
+    "dostęp na działkę dla wiertnicy i odległość odwiertu od budynku",
+    "stan kotłowni i to, co trzeba w niej przerobić",
+    "wybrany zasobnik ciepłej wody i wyposażenie dodatkowe",
+    "termin realizacji i ceny materiałów w dniu zamówienia"
   ]
 }

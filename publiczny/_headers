@@ -1,0 +1,27 @@
+# Naglowki dla publicznego konfiguratora DEWAX.
+#
+# Netlify czyta ten plik z katalogu publikacji. Kazda regula ma powod, wiec
+# jest opisana - inaczej za pol roku ktos usunie ja "bo psuje testy".
+
+/*
+  # Strona nie ma trafic do wyszukiwarek. Konfigurator jest wejsciem
+  # z reklamy, nie tresc do indeksowania, a wycena.html to juz czyjes dane.
+  X-Robots-Tag: noindex, nofollow
+  # Adres tej strony nie ma wyciekac do stron, na ktore klient przejdzie dalej.
+  Referrer-Policy: no-referrer
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=()
+  # Skrypty wylacznie wlasne i Turnstile. Zadnych sieci reklamowych
+  # doklejanych przez wtyczki albo przez pomylke przy wdrozeniu.
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://dewax-lead.adam-demczyszak.workers.dev; frame-src https://challenges.cloudflare.com; form-action 'none'; base-uri 'none'; object-src 'none'
+
+/wycena.html
+  # Wycena konkretnego klienta. Zaden posrednik ani cache przegladarki
+  # nie ma prawa jej przechowac.
+  Cache-Control: no-store, private
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/core/cennik-publiczny.json
+  # Cennik moze sie zmieniac czesciej niz raz na kwartal; godzina wystarczy.
+  Cache-Control: public, max-age=3600

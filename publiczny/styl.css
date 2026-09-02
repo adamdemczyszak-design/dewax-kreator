@@ -1,0 +1,390 @@
+/* =============================================================================
+   Publiczny konfigurator DEWAX
+   =============================================================================
+   Projektowane od telefonu w gore. Wiekszosc ludzi otwiera to z reklamy na
+   telefonie, w jednej rece, przy 375 px szerokosci - i zaden ekran nie ma
+   prawa wymusic przewijania w bok.
+
+   Kolory sa spokojne celowo. Strona ma podac liczbe i powiedziec, czego nie
+   wie; im mniej sprzedazowego halasu, tym latwiej w to uwierzyc.
+   ========================================================================== */
+
+:root {
+  --granat: #1e2a5e;
+  --granat-ciemny: #131c40;
+  --tekst: #1b2437;
+  --tekst-slaby: #5b6577;
+  --tekst-drobny: #7a8395;
+  --tlo: #f6f7fb;
+  --biel: #ffffff;
+  --linia: #e3e7ef;
+  --linia-mocna: #c8cfdd;
+  --akcent: #0f766e;
+  --akcent-tlo: #e7f6f4;
+  --ostrzezenie: #b45309;
+  --ostrzezenie-tlo: #fef6e7;
+  --blad: #b3261e;
+  --promien: 14px;
+  --cien: 0 1px 2px rgba(27, 36, 55, .06), 0 8px 24px rgba(27, 36, 55, .05);
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--tlo);
+  color: var(--tekst);
+  font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* Zadnego przewijania w bok, na zadnej szerokosci. */
+  overflow-x: hidden;
+}
+
+.wrap {
+  width: 100%;
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+/* --- Naglowek ------------------------------------------------------------ */
+
+.naglowek {
+  background: var(--granat);
+  color: #fff;
+  padding: 14px 0;
+}
+.naglowek-tresc { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.marka { font-weight: 800; letter-spacing: .14em; font-size: 15px; }
+.naglowek-podpis { font-size: 12px; color: #b9c2dd; }
+
+.postep { height: 3px; background: var(--linia); }
+.postep-pasek {
+  height: 100%; width: 0;
+  background: var(--akcent);
+  transition: width .35s ease;
+}
+
+/* --- Typografia ---------------------------------------------------------- */
+
+h1 {
+  font-size: 26px;
+  line-height: 1.25;
+  font-weight: 800;
+  letter-spacing: -.015em;
+  margin: 28px 0 8px;
+}
+h2 { font-size: 17px; font-weight: 750; margin: 0 0 4px; letter-spacing: -.01em; }
+h3 { font-size: 15px; font-weight: 700; margin: 0 0 8px; }
+
+.wstep { color: var(--tekst-slaby); margin: 0 0 22px; }
+.karta-wstep { color: var(--tekst-slaby); font-size: 14px; margin: 0 0 18px; }
+.drobne { font-size: 13px; line-height: 1.55; color: var(--tekst-drobny); }
+.drobne a { color: var(--tekst-slaby); }
+
+a { color: var(--granat); }
+
+/* --- Karty --------------------------------------------------------------- */
+
+.karta {
+  background: var(--biel);
+  border: 1px solid var(--linia);
+  border-radius: var(--promien);
+  padding: 20px 18px;
+  margin: 0 0 16px;
+  box-shadow: var(--cien);
+}
+
+.ekran { padding-bottom: 40px; }
+.ekran[hidden] { display: none; }
+
+/* --- Pola ---------------------------------------------------------------- */
+
+.pole { display: block; margin: 0 0 22px; border: 0; padding: 0; }
+.pole:last-child { margin-bottom: 0; }
+
+.etykieta {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0 0 7px;
+  padding: 0;
+}
+.jednostka, .opcjonalne { font-weight: 500; color: var(--tekst-drobny); }
+
+input[type="text"], input[type="number"], input[type="email"], input[type="tel"] {
+  width: 100%;
+  font: inherit;
+  /* 16 px, zeby iOS nie przybliżał ekranu przy wejsciu w pole. */
+  font-size: 16px;
+  padding: 13px 14px;
+  border: 1.5px solid var(--linia-mocna);
+  border-radius: 11px;
+  background: #fff;
+  color: var(--tekst);
+}
+input:focus-visible, .opcja:focus-visible, .btn:focus-visible {
+  outline: 3px solid rgba(15, 118, 110, .35);
+  outline-offset: 2px;
+}
+input[type="number"] { appearance: textfield; -moz-appearance: textfield; }
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+.podpowiedz {
+  display: block;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--tekst-drobny);
+  margin-top: 7px;
+}
+.podpowiedz-nad { margin: -3px 0 9px; }
+
+/* --- Wybor jednokrotny --------------------------------------------------- */
+
+.wybor { display: grid; gap: 8px; }
+.wybor-gesty { grid-template-columns: repeat(2, 1fr); }
+.wybor-trzy { grid-template-columns: repeat(3, 1fr); }
+
+.opcja {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  background: #fff;
+  border: 1.5px solid var(--linia-mocna);
+  border-radius: 11px;
+  padding: 12px 14px;
+  cursor: pointer;
+  color: var(--tekst);
+  /* Palec, nie kursor: nic ponizej 44 px wysokosci. */
+  min-height: 48px;
+}
+.opcja b { display: block; font-weight: 650; font-size: 15px; }
+.opcja span { display: block; font-size: 12.5px; line-height: 1.45; color: var(--tekst-drobny); margin-top: 2px; }
+.opcja:hover { border-color: var(--granat); }
+.opcja[aria-pressed="true"] {
+  border-color: var(--granat);
+  background: var(--granat);
+  color: #fff;
+  box-shadow: inset 0 0 0 1px var(--granat);
+}
+.opcja[aria-pressed="true"] span { color: #c5cde8; }
+
+.wybor-trzy .opcja, .wybor-gesty .opcja { text-align: center; }
+
+/* --- Przelaczniki -------------------------------------------------------- */
+
+.przelacznik {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px;
+  border: 1.5px solid var(--linia);
+  border-radius: 11px;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+.przelacznik:last-child { margin-bottom: 0; }
+.przelacznik input { width: 20px; height: 20px; margin: 2px 0 0; flex: 0 0 auto; accent-color: var(--granat); }
+.przelacznik b { display: block; font-weight: 650; font-size: 15px; }
+.przelacznik .drobne { margin-top: 3px; display: block; }
+.przelacznik:has(input:checked) { border-color: var(--granat); background: #f7f9ff; }
+
+/* --- Przyciski ----------------------------------------------------------- */
+
+.akcje { display: grid; gap: 10px; margin-top: 20px; }
+
+.btn {
+  font: inherit;
+  font-weight: 700;
+  border-radius: 12px;
+  border: 1.5px solid transparent;
+  padding: 14px 20px;
+  cursor: pointer;
+  min-height: 50px;
+}
+.btn-glowny { background: var(--granat); color: #fff; }
+.btn-glowny:hover { background: var(--granat-ciemny); }
+.btn-glowny[disabled] { opacity: .55; cursor: default; }
+.btn-poboczny { background: #fff; color: var(--granat); border-color: var(--linia-mocna); }
+.btn-tekst { background: none; color: var(--tekst-slaby); border: 0; font-weight: 600; min-height: 44px; }
+.btn-duzy { font-size: 16.5px; padding: 16px 22px; }
+
+/* --- Widelki ------------------------------------------------------------- */
+
+.karta-cena { padding: 0; overflow: hidden; }
+.czesc { padding: 20px 18px; border-bottom: 1px solid var(--linia); }
+.czesc-glowa { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; margin-bottom: 10px; }
+
+.znacznik {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.znacznik-pewny { background: var(--akcent-tlo); color: var(--akcent); }
+.znacznik-zmienny { background: var(--ostrzezenie-tlo); color: var(--ostrzezenie); }
+
+.zakres {
+  font-size: 25px;
+  font-weight: 800;
+  letter-spacing: -.02em;
+  margin: 0 0 4px;
+  /* Dlugie kwoty nie moga rozepchac karty na waskim ekranie. */
+  overflow-wrap: anywhere;
+}
+.typowa { font-size: 14px; color: var(--tekst-slaby); margin: 0; }
+.typowa b { color: var(--tekst); }
+
+.domkniecie {
+  margin: 12px 0 0;
+  padding: 11px 13px;
+  background: var(--ostrzezenie-tlo);
+  border-radius: 10px;
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.lista-drobna { margin: 10px 0 0; padding-left: 18px; font-size: 13px; color: var(--tekst-drobny); }
+.lista-drobna li { margin-bottom: 2px; }
+
+.razem {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 18px;
+  background: var(--granat);
+  color: #fff;
+  flex-wrap: wrap;
+}
+.razem span { font-size: 14px; color: #c5cde8; }
+.razem strong { font-size: 22px; font-weight: 800; letter-spacing: -.02em; }
+
+.dotacja { padding: 14px 18px; background: #fbfcfe; border-bottom: 1px solid var(--linia); }
+.zastrzezenie { padding: 14px 18px; margin: 0; font-size: 12.5px; line-height: 1.55; color: var(--tekst-drobny); }
+
+/* --- Tabela -------------------------------------------------------------- */
+
+.tabela { width: 100%; border-collapse: collapse; font-size: 14px; }
+.tabela th, .tabela td { text-align: left; padding: 9px 4px; border-bottom: 1px solid var(--linia); }
+.tabela th { font-size: 11.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--tekst-drobny); font-weight: 700; }
+.tabela td:last-child, .tabela th:last-child { text-align: right; white-space: nowrap; }
+.tabela tr.teraz td { color: var(--tekst-slaby); }
+.tabela tr.pompa td { font-weight: 700; }
+
+/* --- Sekcja uczciwa ------------------------------------------------------ */
+
+.karta-uczciwa { border-color: var(--linia-mocna); background: #fbfbfd; }
+.przypadek { padding: 14px 0; border-bottom: 1px solid var(--linia); }
+.przypadek:last-child { border-bottom: 0; padding-bottom: 0; }
+.przypadek h3 { margin-bottom: 4px; }
+.przypadek p { margin: 0; font-size: 14px; color: var(--tekst-slaby); }
+
+.karta-cta { border-color: var(--granat); }
+.karta-cta .btn { width: 100%; }
+.karta-cta .btn-tekst { margin-top: 6px; }
+
+/* --- Klauzula i zgody ---------------------------------------------------- */
+
+.klauzula {
+  margin: 4px 0 20px;
+  padding: 16px;
+  background: #fbfbfd;
+  border: 1px solid var(--linia);
+  border-radius: 11px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--tekst-slaby);
+  /* Klauzula ma byc widoczna, a nie ukryta pod linkiem - ale nie moze tez
+     zajmowac calego ekranu telefonu. Stad wlasne przewijanie. */
+  max-height: 260px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.klauzula h3 { color: var(--tekst); }
+.klauzula p { margin: 0 0 8px; }
+.klauzula ul { margin: 0 0 8px; padding-left: 18px; }
+
+.zgody { margin-bottom: 18px; }
+.zgoda {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 0;
+  font-size: 13.5px;
+  line-height: 1.55;
+  cursor: pointer;
+}
+.zgoda input { width: 22px; height: 22px; margin: 0; flex: 0 0 auto; accent-color: var(--granat); }
+
+.pulapka { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
+.turnstile { margin: 4px 0 16px; min-height: 66px; }
+
+/* --- Bledy --------------------------------------------------------------- */
+
+.blad {
+  margin: 12px 0 0;
+  padding: 12px 14px;
+  background: #fdeceb;
+  border: 1px solid #f3c9c6;
+  border-radius: 10px;
+  color: var(--blad);
+  font-size: 14px;
+  font-weight: 600;
+}
+.blad[hidden] { display: none; }
+
+.pole-z-bledem input { border-color: var(--blad); }
+
+/* --- Cookies ------------------------------------------------------------- */
+
+.cookies {
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: 60;
+  background: #fff;
+  border-top: 1px solid var(--linia-mocna);
+  box-shadow: 0 -8px 30px rgba(27, 36, 55, .12);
+  padding: 16px;
+}
+.cookies[hidden] { display: none; }
+.cookies-tresc { max-width: 680px; margin: 0 auto; }
+.cookies-tresc p { margin: 0 0 8px; }
+.cookies-akcje { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0 8px; }
+
+/* --- Koniec i stopka ----------------------------------------------------- */
+
+.karta-koniec { text-align: left; margin-top: 28px; }
+.karta-koniec h1 { margin-top: 0; }
+
+.stopka {
+  border-top: 1px solid var(--linia);
+  padding: 22px 0 36px;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--tekst-drobny);
+}
+.stopka p { margin: 0 0 4px; }
+
+/* --- Szerzej niz telefon ------------------------------------------------- */
+
+@media (min-width: 560px) {
+  h1 { font-size: 31px; }
+  .karta { padding: 24px 22px; }
+  .czesc { padding: 24px 22px; }
+  .zakres { font-size: 29px; }
+  .akcje { grid-auto-flow: column; justify-content: start; }
+  .btn-duzy { min-width: 220px; }
+  .karta-cta .btn { width: auto; min-width: 260px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .postep-pasek { transition: none; }
+}

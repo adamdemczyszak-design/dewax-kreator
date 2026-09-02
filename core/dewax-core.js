@@ -401,7 +401,8 @@
     // Budynek istniejacy: instalacja wewnetrzna czesto wymaga przerobek.
     if (konfig.budynek === "istniejacy" && pub.czescPewna.dopłataIstniejacy) {
       typowaPewna += pub.czescPewna.dopłataIstniejacy;
-      dodatki.push({ nazwa: "budynek istniejacy - przerobki instalacji", brutto: pub.czescPewna.dopłataIstniejacy });
+      // Ten napis czyta klient na stronie, wiec z polskimi znakami.
+      dodatki.push({ nazwa: "budynek istniejący - przeróbki instalacji", brutto: pub.czescPewna.dopłataIstniejacy });
     }
 
     var czescPewna = widelki(typowaPewna, pub.czescPewna.rozrzut, pub.czescPewna.maksRozpietosc);

@@ -1,0 +1,4 @@
+# Publiczny konfigurator DEWAX nie jest tresc do indeksowania. Wejscie idzie
+# z reklamy albo z linku na pompy.dewax.pl, a wycena.html to juz czyjes dane.
+User-agent: *
+Disallow: /

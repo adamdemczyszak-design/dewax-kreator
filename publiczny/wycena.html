@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Strona z czyjas wycena nie ma prawa trafic do wyszukiwarki ani zostawic
+     sladu w logach stron, na ktore klient przejdzie dalej. -->
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="referrer" content="no-referrer">
+<title>Twoja wycena - DEWAX</title>
+<link rel="stylesheet" href="styl.css">
+</head>
+<body>
+
+<header class="naglowek">
+  <div class="wrap naglowek-tresc">
+    <span class="marka">DEWAX</span>
+    <span class="naglowek-podpis">Twoja wycena</span>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- ===================== DRUGA WERYFIKACJA ===================== -->
+<section id="ekran-kod" class="ekran">
+  <h1>Potwierdź, że to Twoja wycena</h1>
+  <p class="wstep">Podaj kod pocztowy, który wpisałeś przy wycenie. Pytamy o to dlatego, że sam link - gdyby trafił do kogoś innego, na przykład przez przesłaną dalej wiadomość - nie może pokazywać Twoich danych.</p>
+
+  <div class="karta">
+    <label class="pole">
+      <span class="etykieta">Kod pocztowy</span>
+      <input type="text" id="kod" inputmode="numeric" maxlength="6" placeholder="63-330" autocomplete="off">
+    </label>
+    <div class="akcje">
+      <button type="button" class="btn btn-glowny btn-duzy" id="otworz">Otwórz wycenę</button>
+    </div>
+    <p class="blad" id="bladKod" hidden></p>
+  </div>
+</section>
+
+<!-- ===================== WYCENA ===================== -->
+<section id="ekran-wycena" class="ekran" hidden>
+  <h1 id="naglowekWyceny"></h1>
+  <p class="wstep" id="wstepWyceny"></p>
+
+  <div class="karta karta-cena">
+    <div class="czesc">
+      <div class="czesc-glowa">
+        <h2>Pompa, montaż i instalacja</h2>
+        <span class="znacznik znacznik-pewny">część przewidywalna</span>
+      </div>
+      <p class="zakres" id="pewnaZakres"></p>
+      <p class="typowa" id="pewnaTypowa"></p>
+    </div>
+    <div class="czesc">
+      <div class="czesc-glowa">
+        <h2>Dolne źródło (odwiert)</h2>
+        <span class="znacznik znacznik-zmienny">zależy od gruntu</span>
+      </div>
+      <p class="zakres" id="odwiertZakres"></p>
+      <p class="typowa" id="odwiertOpis"></p>
+      <p class="domkniecie">Co domknie te widełki: <b>rozpoznanie gruntu</b> na Twojej działce.</p>
+    </div>
+    <div class="razem">
+      <span>Razem, typowo</span>
+      <strong id="razemTypowa"></strong>
+    </div>
+    <div class="dotacja"><p class="drobne" id="dotacjaTekst"></p></div>
+    <p class="zastrzezenie" id="zastrzezenieCeny"></p>
+  </div>
+
+  <!-- Zmieniac mozna to, co klient rozumie. Mocy, modelu i wariantu odwiertu
+       nie ma tu tak samo, jak nie bylo w konfiguratorze. -->
+  <div class="karta">
+    <h2>Zmień odpowiedzi</h2>
+    <p class="karta-wstep">Zmiana aktualizuje tę samą wycenę - nie tworzy nowego zgłoszenia i nie sprawia, że zadzwonimy drugi raz.</p>
+
+    <label class="pole">
+      <span class="etykieta">Powierzchnia ogrzewana <span class="jednostka">m²</span></span>
+      <input type="number" id="metraz" inputmode="numeric" min="20" max="1000" step="1">
+    </label>
+
+    <label class="pole">
+      <span class="etykieta">Ilu domowników</span>
+      <input type="number" id="domownikow" inputmode="numeric" min="1" max="15" step="1">
+    </label>
+
+    <label class="przelacznik">
+      <input type="checkbox" id="cwuPowiekszona">
+      <span><b>Większy zasobnik ciepłej wody</b></span>
+    </label>
+    <label class="przelacznik">
+      <input type="checkbox" id="chlodzenie">
+      <span><b>Chłodzenie latem</b><span class="drobne">Ta sama instalacja latem chłodzi dom.</span></span>
+    </label>
+    <label class="przelacznik">
+      <input type="checkbox" id="rekuperacja">
+      <span><b>Rekuperacja</b><span class="drobne">Wentylacja z odzyskiem ciepła, osobna instalacja.</span></span>
+    </label>
+
+    <div class="akcje">
+      <button type="button" class="btn btn-glowny btn-duzy" id="zapisz">Przelicz i zapisz</button>
+    </div>
+    <p class="blad" id="bladZapis" hidden></p>
+    <p class="drobne" id="zapisano" hidden>Zapisane. Daria zobaczy nową wersję przed telefonem.</p>
+  </div>
+
+  <div class="karta">
+    <h2>Masz pytanie wcześniej</h2>
+    <p class="karta-wstep">Zadzwoń: <a href="tel:+48627413227">62 7413 227</a>. Albo napisz: <a href="mailto:biuro@dewax.pl">biuro@dewax.pl</a>.</p>
+  </div>
+</section>
+
+</main>
+
+<footer class="stopka">
+  <div class="wrap">
+    <p><b>DEWAX Sp. z o.o.</b>, ul. Ostrowska 1, 63-330 Dobrzyca · NIP 6080071501 · KRS 0000298299</p>
+    <p><a href="regulamin.html">Regulamin usługi</a> · <a href="prywatnosc.html">Polityka prywatności</a></p>
+  </div>
+</footer>
+
+<script src="core/dewax-core.js"></script>
+<script>
+/* =============================================================================
+ * Link powrotny
+ * =============================================================================
+ * W adresie jest wylacznie token - losowe 192 bity. Zero danych osobowych,
+ * zero identyfikatorow HubSpota, nic, co da sie odczytac bez serwera.
+ *
+ * Token sam w sobie nie wystarcza: przy otwarciu trzeba jeszcze podac kod
+ * pocztowy. Link przekazany dalej albo znaleziony w cudzej skrzynce niczego
+ * nie pokazuje.
+ * ========================================================================== */
+(function () {
+  "use strict";
+
+  var WORKER = "https://dewax-lead.adam-demczyszak.workers.dev";
+  // Token siedzi we fragmencie adresu (po #), a nie w query. Fragment nie
+  // jest wysylany do serwera przy zadnym zadaniu, wiec nie zapisze go zaden
+  // log - ani Netlify, ani posrednika. Query string zapisalby sie w obu.
+  var token = new URLSearchParams((location.hash || "").replace(/^#/, "")).get("t") || "";
+  var cennik = null, konfiguracja = null, kod = "";
+
+  function el(id) { return document.getElementById(id); }
+  function pln(v) { return Math.round(Number(v) || 0).toLocaleString("pl-PL") + " zł"; }
+  function tys(v) { return Math.round((Number(v) || 0) / 1000) + " tys. zł"; }
+  function blad(id, t) { var b = el(id); b.textContent = t; b.hidden = false; }
+
+  // Token znika z paska adresu zaraz po wczytaniu - zeby nie zostal
+  // w historii przegladarki na cudzym telefonie.
+  if (token) {
+    try { history.replaceState(null, "", location.pathname); } catch (e) {}
+  }
+
+  el("kod").addEventListener("input", function (e) {
+    var c = e.target.value.replace(/\D/g, "").slice(0, 5);
+    e.target.value = c.length > 2 ? c.slice(0, 2) + "-" + c.slice(2) : c;
+  });
+
+  el("otworz").addEventListener("click", async function () {
+    el("bladKod").hidden = true;
+    kod = el("kod").value.trim();
+    if (!/^\d{2}-\d{3}$/.test(kod)) { blad("bladKod", "Kod pocztowy w formacie 00-000."); return; }
+    if (!token) { blad("bladKod", "Ten adres nie zawiera linku do wyceny. Otwórz go z wiadomości e-mail."); return; }
+
+    var p = el("otworz");
+    p.disabled = true; p.textContent = "Sprawdzam…";
+    try {
+      var r = await fetch(WORKER + "/wycena", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: token, kodPocztowy: kod }),
+      });
+      var d = await r.json().catch(function () { return null; });
+      if (!r.ok || !d || !d.ok) throw new Error((d && d.blad) || "Nie znaleźliśmy tej wyceny.");
+      konfiguracja = d.konfiguracja;
+      pokaz(d.wycena);
+    } catch (e) {
+      blad("bladKod", e.message);
+    } finally {
+      p.disabled = false; p.textContent = "Otwórz wycenę";
+    }
+  });
+
+  function strefaZKodu(k) {
+    var STREFY = [
+      { od: 60, do: 69, s: "A" }, { od: 70, do: 78, s: "A" }, { od: 80, do: 84, s: "A" },
+      { od: 0, do: 9, s: "B" }, { od: 10, do: 14, s: "B" }, { od: 15, do: 19, s: "B" },
+      { od: 45, do: 49, s: "B" }, { od: 50, do: 56, s: "B" }, { od: 85, do: 89, s: "B" },
+      { od: 90, do: 99, s: "B" },
+      { od: 20, do: 24, s: "C" }, { od: 35, do: 39, s: "C" }, { od: 40, do: 44, s: "C" },
+      { od: 25, do: 29, s: "D" }, { od: 30, do: 34, s: "D" }, { od: 57, do: 59, s: "D" },
+    ];
+    var p = parseInt(String(k).slice(0, 2), 10);
+    for (var i = 0; i < STREFY.length; i++) if (p >= STREFY[i].od && p <= STREFY[i].do) return STREFY[i].s;
+    return "B";
+  }
+
+  function pokaz(w) {
+    if (!w && cennik) w = window.DEWAX_CORE.widelkiPubliczne(konfiguracja, strefaZKodu(kod));
+    el("ekran-kod").hidden = true;
+    el("ekran-wycena").hidden = false;
+
+    el("naglowekWyceny").textContent = "Dom " + konfiguracja.metraz + " m², kod " + konfiguracja.kodPocztowy;
+    el("wstepWyceny").textContent = "Wszystkie kwoty brutto. Widełki, nie cena - część za pompę i montaż jest przewidywalna, dolne źródło zależy od tego, co jest pod działką.";
+
+    el("pewnaZakres").textContent = pln(w.czescPewna.zakres.od) + " – " + pln(w.czescPewna.zakres.do);
+    el("pewnaTypowa").innerHTML = "Większość domów jak Twój: <b>około " + tys(w.czescPewna.zakres.typowa) + "</b>.";
+    el("odwiertZakres").textContent = pln(w.dolneZrodlo.zakres.od) + " – " + pln(w.dolneZrodlo.zakres.do);
+    el("odwiertOpis").innerHTML = "Około <b>" + w.dolneZrodlo.metrow + " metrów</b> odwiertu. " + w.dolneZrodlo.opisStrefy;
+    el("razemTypowa").textContent = pln(w.razem.typowa);
+    el("dotacjaTekst").innerHTML = "<b>" + w.dofinansowanie.nazwa + "</b>: szacowany koszt po możliwym dofinansowaniu to około "
+      + tys(w.dofinansowanie.szacowanyKosztPoDofinansowaniu) + ". " + w.dofinansowanie.zastrzezenie;
+    el("zastrzezenieCeny").textContent = w.zastrzezenie + " Kalkulacja ważna " + w.wazneDni + " dni.";
+
+    el("metraz").value = konfiguracja.metraz;
+    el("domownikow").value = konfiguracja.domownikow;
+    el("cwuPowiekszona").checked = !!konfiguracja.cwuPowiekszona;
+    el("chlodzenie").checked = !!konfiguracja.chlodzenie;
+    el("rekuperacja").checked = !!konfiguracja.rekuperacja;
+  }
+
+  el("zapisz").addEventListener("click", async function () {
+    el("bladZapis").hidden = true;
+    el("zapisano").hidden = true;
+    if (!cennik) { blad("bladZapis", "Cennik jeszcze się wczytuje. Spróbuj za sekundę."); return; }
+
+    var m = Number(el("metraz").value);
+    var d = Number(el("domownikow").value);
+    if (!(m >= 20 && m <= 1000)) { blad("bladZapis", "Powierzchnia od 20 do 1000 m²."); return; }
+    if (!(d >= 1 && d <= 15)) { blad("bladZapis", "Liczba domowników od 1 do 15."); return; }
+
+    konfiguracja.metraz = m;
+    konfiguracja.domownikow = d;
+    konfiguracja.cwuPowiekszona = el("cwuPowiekszona").checked;
+    konfiguracja.chlodzenie = el("chlodzenie").checked;
+    konfiguracja.rekuperacja = el("rekuperacja").checked;
+
+    var nowa = window.DEWAX_CORE.widelkiPubliczne(konfiguracja, strefaZKodu(kod));
+
+    var p = el("zapisz");
+    p.disabled = true; p.textContent = "Zapisuję…";
+    try {
+      var r = await fetch(WORKER + "/aktualizacja", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: token, kodPocztowy: kod, konfiguracja: konfiguracja, wycena: nowa }),
+      });
+      var j = await r.json().catch(function () { return null; });
+      if (!r.ok || !j || !j.ok) throw new Error((j && j.blad) || "Nie udało się zapisać.");
+      pokaz(nowa);
+      el("zapisano").hidden = false;
+    } catch (e) {
+      blad("bladZapis", e.message + " Możesz zadzwonić: 62 7413 227.");
+    } finally {
+      p.disabled = false; p.textContent = "Przelicz i zapisz";
+    }
+  });
+
+  fetch("core/cennik-publiczny.json")
+    .then(function (r) { return r.json(); })
+    .then(function (c) { cennik = c; window.DEWAX_CORE.zaladuj(null, c); })
+    .catch(function () { blad("bladKod", "Nie udało się wczytać cennika. Odśwież stronę."); });
+})();
+</script>
+</body>
+</html>

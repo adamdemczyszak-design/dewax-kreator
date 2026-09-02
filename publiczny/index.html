@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<!-- data-turnstile: PUBLICZNY klucz witryny Cloudflare Turnstile. Jest jawny
+     z zalozenia - siedzi w kodzie kazdej strony, ktora go uzywa. Prywatny
+     klucz (TURNSTILE_SECRET) jest wylacznie w Workerze dewax-lead.
+     Do podmiany po utworzeniu widgetu w panelu Cloudflare. -->
+<html lang="pl" data-turnstile="0x0000000000000000000000">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Ile kosztuje gruntowa pompa ciepła w Twoim domu - DEWAX</title>
+<meta name="description" content="Odpowiedz na kilka pytań o swój dom i zobacz widełki kosztów gruntowej pompy ciepła. Bez podawania danych kontaktowych.">
+<link rel="stylesheet" href="styl.css">
+</head>
+<body>
+
+<!-- =====================================================================
+     ZGODA NA COOKIES
+     Konfigurator dziala w calosci bez zgody. Zgoda dotyczy wylacznie
+     pomiaru skutecznosci reklam - i dlatego "Tylko niezbedne" jest
+     zwyklym przyciskiem, a nie linkiem schowanym pod spodem.
+     ===================================================================== -->
+<div id="cookies" class="cookies" hidden>
+  <div class="cookies-tresc">
+    <p><strong>Pomiar skuteczności reklam</strong></p>
+    <p class="drobne">Konfigurator działa bez tego w całości. Jeśli się zgodzisz, zapiszemy w Twojej przeglądarce identyfikator sesji i przekażemy nam samym informację, z której reklamy tu trafiłeś - żebyśmy wiedzieli, które reklamy mają sens. Nie przekazujemy tego dalej bez Twojej wiedzy.</p>
+    <div class="cookies-akcje">
+      <button type="button" class="btn btn-glowny" data-cookies="tak">Zgadzam się</button>
+      <button type="button" class="btn btn-poboczny" data-cookies="nie">Tylko niezbędne</button>
+    </div>
+    <p class="drobne"><a href="prywatnosc.html" target="_blank" rel="noopener">Polityka prywatności</a></p>
+  </div>
+</div>
+
+<header class="naglowek">
+  <div class="wrap naglowek-tresc">
+    <span class="marka">DEWAX</span>
+    <span class="naglowek-podpis">gruntowe pompy ciepła</span>
+  </div>
+</header>
+
+<div class="postep" aria-hidden="true"><div id="postepPasek" class="postep-pasek"></div></div>
+
+<main class="wrap" id="tresc">
+
+<!-- =====================================================================
+     EKRAN 1 - KONFIGURACJA
+     Pytamy wylacznie o to, co klient wie o wlasnym domu. Ani razu o moc,
+     model czy wariant odwiertu - te rzeczy dobiera sie po rozpoznaniu
+     gruntu i pytanie o nie znaczy tylko tyle, ze klient poczuje sie glupio.
+     ===================================================================== -->
+<section id="ekran-1" class="ekran">
+  <h1>Ile to kosztuje w Twoim domu</h1>
+  <p class="wstep">Kilka pytań o dom, jedno o kod pocztowy, i zobaczysz widełki. Bez podawania nazwiska, telefonu ani adresu.</p>
+
+  <div class="karta">
+    <h2>Twój dom</h2>
+
+    <label class="pole">
+      <span class="etykieta">Powierzchnia ogrzewana <span class="jednostka">m²</span></span>
+      <input type="number" id="metraz" inputmode="numeric" min="20" max="1000" step="1" placeholder="np. 160" autocomplete="off">
+      <span class="podpowiedz">Metraż, który faktycznie ogrzewasz. Nieogrzewany garaż czy strych się nie liczą.</span>
+    </label>
+
+    <label class="pole">
+      <span class="etykieta">Rok budowy <span class="opcjonalne">jeśli pamiętasz</span></span>
+      <input type="number" id="rokBudowy" inputmode="numeric" min="1850" max="2035" step="1" placeholder="np. 2008" autocomplete="off">
+    </label>
+
+    <fieldset class="pole">
+      <legend class="etykieta">Ocieplenie</legend>
+      <div class="wybor" data-pole="ocieplenie">
+        <button type="button" class="opcja" data-v="slabe"><b>Słabe</b><span>zimą czuć chłód przy ścianach, wysokie rachunki</span></button>
+        <button type="button" class="opcja" data-v="srednie"><b>Średnie</b><span>ocieplony, ale kilkanaście lat temu</span></button>
+        <button type="button" class="opcja" data-v="dobre"><b>Dobre</b><span>ocieplony niedawno, okna wymienione</span></button>
+        <button type="button" class="opcja" data-v="bardzo_dobre"><b>Bardzo dobre</b><span>dom energooszczędny albo pasywny</span></button>
+        <button type="button" class="opcja" data-v="nie_wiem"><b>Nie wiem</b><span>sprawdzimy przed montażem</span></button>
+      </div>
+    </fieldset>
+
+    <fieldset class="pole">
+      <legend class="etykieta">Czym grzejesz dzisiaj</legend>
+      <div class="wybor wybor-gesty" data-pole="obecneOgrzewanie">
+        <button type="button" class="opcja" data-v="wegiel"><b>Węgiel</b></button>
+        <button type="button" class="opcja" data-v="gaz"><b>Gaz</b></button>
+        <button type="button" class="opcja" data-v="pelet"><b>Pelet</b></button>
+        <button type="button" class="opcja" data-v="olej"><b>Olej</b></button>
+        <button type="button" class="opcja" data-v="prad"><b>Prąd</b></button>
+        <button type="button" class="opcja" data-v="pompa_powietrzna"><b>Pompa powietrzna</b></button>
+        <button type="button" class="opcja" data-v="brak"><b>Jeszcze niczym</b></button>
+        <button type="button" class="opcja" data-v="inne"><b>Inne</b></button>
+      </div>
+    </fieldset>
+
+    <label class="pole">
+      <span class="etykieta">Ile płacisz za ogrzewanie przez rok <span class="opcjonalne">z grubsza</span></span>
+      <input type="number" id="rocznyKoszt" inputmode="numeric" min="0" max="200000" step="100" placeholder="np. 9000" autocomplete="off">
+      <span class="podpowiedz">Razem z ciepłą wodą. Przybliżenie w zupełności wystarczy - użyjemy tego tylko do porównania kosztów.</span>
+    </label>
+
+    <label class="pole">
+      <span class="etykieta">Ilu domowników</span>
+      <input type="number" id="domownikow" inputmode="numeric" min="1" max="15" step="1" placeholder="np. 4" autocomplete="off">
+      <span class="podpowiedz">Od tego zależy zasobnik ciepłej wody.</span>
+    </label>
+
+    <fieldset class="pole">
+      <legend class="etykieta">Budynek</legend>
+      <div class="wybor" data-pole="budynek">
+        <button type="button" class="opcja" data-v="istniejacy"><b>Istniejący</b><span>stoi i jest używany</span></button>
+        <button type="button" class="opcja" data-v="nowy"><b>Nowy</b><span>w budowie albo dopiero w planach</span></button>
+      </div>
+    </fieldset>
+
+    <fieldset class="pole" id="poleEtap" hidden>
+      <legend class="etykieta">Etap budowy</legend>
+      <div class="wybor" data-pole="etapBudowy">
+        <button type="button" class="opcja" data-v="projekt"><b>Projekt</b></button>
+        <button type="button" class="opcja" data-v="stan_surowy"><b>Stan surowy</b></button>
+        <button type="button" class="opcja" data-v="wykonczenie"><b>Wykończenie</b></button>
+      </div>
+    </fieldset>
+  </div>
+
+  <!-- Trzy pytania o teren. Kazde z "nie wiem", bo wiekszosc ludzi tego nie
+       wie i nie ma powodu wiedziec - a pytanie bez tej opcji zmusza do
+       zgadywania i psuje wycene bardziej niz brak odpowiedzi. -->
+  <div class="karta">
+    <h2>Twoja działka</h2>
+    <p class="karta-wstep">Trzy pytania. Przy każdym możesz zaznaczyć „nie wiem" - to normalna odpowiedź, sprawdzimy to na miejscu.</p>
+
+    <fieldset class="pole">
+      <legend class="etykieta">Czy jest miejsce na odwiert</legend>
+      <span class="podpowiedz podpowiedz-nad">Odwiert zajmuje niewiele: kilka metrów kwadratowych na czas wiercenia, potem nic nie widać. Nie musi być na środku trawnika.</span>
+      <div class="wybor wybor-trzy" data-pole="miejsceNaOdwiert">
+        <button type="button" class="opcja" data-v="tak"><b>Tak</b></button>
+        <button type="button" class="opcja" data-v="nie"><b>Nie</b></button>
+        <button type="button" class="opcja" data-v="nie_wiem"><b>Nie wiem</b></button>
+      </div>
+    </fieldset>
+
+    <fieldset class="pole">
+      <legend class="etykieta">Czy wiertnica dojedzie</legend>
+      <span class="podpowiedz podpowiedz-nad">Potrzebuje około 3 m szerokości - bramy i przejazdu. To najczęstsza rzecz, która przesądza o wyborze technologii.</span>
+      <div class="wybor wybor-trzy" data-pole="dojazd">
+        <button type="button" class="opcja" data-v="tak"><b>Tak</b></button>
+        <button type="button" class="opcja" data-v="nie"><b>Nie</b></button>
+        <button type="button" class="opcja" data-v="nie_wiem"><b>Nie wiem</b></button>
+      </div>
+    </fieldset>
+
+    <fieldset class="pole">
+      <legend class="etykieta">Czy w okolicy są studnie</legend>
+      <span class="podpowiedz podpowiedz-nad">Studnia sąsiada mówi nam, na jakiej głębokości jest woda - a to jedna z rzeczy, które decydują o koszcie odwiertu.</span>
+      <div class="wybor wybor-trzy" data-pole="studnieWOkolicy">
+        <button type="button" class="opcja" data-v="tak"><b>Tak</b></button>
+        <button type="button" class="opcja" data-v="nie"><b>Nie</b></button>
+        <button type="button" class="opcja" data-v="nie_wiem"><b>Nie wiem</b></button>
+      </div>
+    </fieldset>
+
+    <label class="pole" id="poleGlebokosc" hidden>
+      <span class="etykieta">Na jakiej głębokości <span class="opcjonalne">jeśli wiesz, w metrach</span></span>
+      <input type="number" id="glebokoscStudni" inputmode="numeric" min="0" max="300" step="1" placeholder="np. 25" autocomplete="off">
+    </label>
+  </div>
+
+  <!-- Rzeczy, ktore klient rozumie i moze zmienic. Mocy, modelu ani wariantu
+       odwiertu tu nie ma i nie bedzie - to nie sa decyzje klienta. -->
+  <div class="karta">
+    <h2>Co chcesz dołożyć</h2>
+    <p class="karta-wstep">Resztę - moc, model, długość odwiertu - dobierzemy sami po obejrzeniu domu. Nie musisz tego teraz wiedzieć.</p>
+
+    <label class="przelacznik">
+      <input type="checkbox" id="cwuPowiekszona">
+      <span>
+        <b>Większy zasobnik ciepłej wody</b>
+        <span class="drobne">Jeśli w domu bywa więcej osób niż na co dzień albo lubicie długie kąpiele.</span>
+      </span>
+    </label>
+
+    <label class="przelacznik">
+      <input type="checkbox" id="chlodzenie">
+      <span>
+        <b>Chłodzenie latem</b>
+        <span class="drobne">Ta sama instalacja latem chłodzi dom. Działa cicho i prawie nic nie kosztuje w eksploatacji - to jedna z rzeczy, których pompa powietrzna tak nie potrafi.</span>
+      </span>
+    </label>
+
+    <label class="przelacznik">
+      <input type="checkbox" id="rekuperacja">
+      <span>
+        <b>Rekuperacja</b>
+        <span class="drobne">Wentylacja z odzyskiem ciepła. Osobna instalacja, ma sens głównie w budynku, który jeszcze powstaje.</span>
+      </span>
+    </label>
+  </div>
+
+  <div class="akcje">
+    <button type="button" class="btn btn-glowny btn-duzy" id="doKodu">Dalej</button>
+  </div>
+  <p class="blad" id="bladEkran1" hidden></p>
+</section>
+
+<!-- =====================================================================
+     EKRAN 2 - KOD POCZTOWY
+     Sam kod, nie adres. Uzasadnienie stoi nad polem, nie pod nim.
+     ===================================================================== -->
+<section id="ekran-2" class="ekran" hidden>
+  <h1>Kod pocztowy</h1>
+  <p class="wstep">Geologia decyduje o koszcie odwiertu. W jednym rejonie metr odwiertu daje dwa razy więcej ciepła niż w innym - i to jest największa zmienna w całej wycenie.</p>
+
+  <div class="karta">
+    <label class="pole">
+      <span class="etykieta">Kod pocztowy inwestycji</span>
+      <input type="text" id="kodPocztowy" inputmode="numeric" maxlength="6" placeholder="63-330" autocomplete="postal-code">
+      <span class="podpowiedz">Sam kod. Adresu nie pytamy teraz i nie będziemy pytać, dopóki nie umówimy wizyty.</span>
+    </label>
+  </div>
+
+  <div class="akcje">
+    <button type="button" class="btn btn-glowny btn-duzy" id="doWidelek">Pokaż widełki</button>
+    <button type="button" class="btn btn-tekst" data-wroc="1">Wróć</button>
+  </div>
+  <p class="blad" id="bladEkran2" hidden></p>
+</section>
+
+<!-- =====================================================================
+     EKRAN 3 - WIDELKI
+     Bez zadnych danych kontaktowych. Klient ma dostac liczbe i wyjsc, jesli
+     chce - inaczej nie uwierzy w zadna z pozostalych rzeczy na tej stronie.
+     ===================================================================== -->
+<section id="ekran-3" class="ekran" hidden>
+  <h1 id="widelkiNaglowek">Twoje widełki</h1>
+  <p class="wstep" id="widelkiWstep"></p>
+
+  <div class="karta karta-cena">
+    <div class="czesc">
+      <div class="czesc-glowa">
+        <h2>Pompa, montaż i instalacja</h2>
+        <span class="znacznik znacznik-pewny">część przewidywalna</span>
+      </div>
+      <p class="zakres" id="pewnaZakres"></p>
+      <p class="typowa" id="pewnaTypowa"></p>
+      <ul class="lista-drobna" id="pewnaZawiera"></ul>
+    </div>
+
+    <div class="czesc">
+      <div class="czesc-glowa">
+        <h2>Dolne źródło (odwiert)</h2>
+        <span class="znacznik znacznik-zmienny">zależy od gruntu</span>
+      </div>
+      <p class="zakres" id="odwiertZakres"></p>
+      <p class="typowa" id="odwiertOpis"></p>
+      <p class="domkniecie">Co domknie te widełki: <b>rozpoznanie gruntu</b> na Twojej działce. Po nim ta liczba przestaje być widełkami.</p>
+    </div>
+
+    <div class="razem">
+      <span>Razem, typowo</span>
+      <strong id="razemTypowa"></strong>
+    </div>
+
+    <div class="dotacja" id="dotacjaBlok">
+      <p class="drobne" id="dotacjaTekst"></p>
+    </div>
+
+    <p class="zastrzezenie" id="zastrzezenieCeny"></p>
+  </div>
+
+  <div class="karta">
+    <h2>Koszt eksploatacji</h2>
+    <p class="karta-wstep" id="eksploatacjaWstep"></p>
+    <table class="tabela" id="tabelaEksploatacji"></table>
+    <p class="drobne" id="eksploatacjaZastrzezenie"></p>
+  </div>
+
+  <div class="karta karta-uczciwa">
+    <h2>Kiedy pompa gruntowa się nie opłaci</h2>
+    <p class="karta-wstep">Trzy sytuacje, w których sami odradzamy.</p>
+    <div id="nieOplaca"></div>
+  </div>
+
+  <div class="karta karta-cta">
+    <h2>Chcesz dokładną wycenę</h2>
+    <p class="karta-wstep">Widełki wyżej liczą się z metrażu i kodu pocztowego. Dokładna wycena wymaga obejrzenia domu - albo przynajmniej rozmowy o tym, co jest w kotłowni.</p>
+    <button type="button" class="btn btn-glowny btn-duzy" id="doKontaktu">Chcę dokładną wycenę</button>
+    <button type="button" class="btn btn-tekst" data-wroc="1">Zmień odpowiedzi</button>
+  </div>
+</section>
+
+<!-- =====================================================================
+     EKRAN 4 - KONTAKT
+     Dopiero tutaj. Pelnego adresu nie pytamy - ten jest przy umawianiu wizyty.
+     ===================================================================== -->
+<section id="ekran-4" class="ekran" hidden>
+  <h1>Dokładna wycena</h1>
+  <p class="wstep">Pięć pól. Adresu inwestycji nie pytamy tutaj - ustalimy go, kiedy będziemy umawiać wizytę.</p>
+
+  <form class="karta" id="formularz" novalidate>
+    <label class="pole">
+      <span class="etykieta">Imię</span>
+      <input type="text" id="imie" maxlength="60" autocomplete="given-name">
+    </label>
+
+    <label class="pole">
+      <span class="etykieta">Telefon</span>
+      <input type="tel" id="telefon" inputmode="tel" maxlength="20" placeholder="600 100 200" autocomplete="tel">
+    </label>
+
+    <label class="pole">
+      <span class="etykieta">E-mail</span>
+      <input type="email" id="email" maxlength="150" autocomplete="email">
+      <span class="podpowiedz">Wyślemy na niego Twoją wycenę i link, którym możesz ją później zmienić.</span>
+    </label>
+
+    <fieldset class="pole">
+      <legend class="etykieta">Kiedy chcesz to zrobić</legend>
+      <div class="wybor" data-pole="terminInstalacji">
+        <button type="button" class="opcja" data-v="jak_najszybciej"><b>Jak najszybciej</b></button>
+        <button type="button" class="opcja" data-v="3_miesiace"><b>W ciągu 3 miesięcy</b></button>
+        <button type="button" class="opcja" data-v="pol_roku"><b>W ciągu pół roku</b></button>
+        <button type="button" class="opcja" data-v="rok"><b>W ciągu roku</b></button>
+        <button type="button" class="opcja" data-v="nie_wiem"><b>Jeszcze nie wiem</b></button>
+      </div>
+    </fieldset>
+
+    <fieldset class="pole">
+      <legend class="etykieta">Kto podejmuje decyzję</legend>
+      <div class="wybor wybor-trzy" data-pole="ktoDecyduje">
+        <button type="button" class="opcja" data-v="ja"><b>Ja</b></button>
+        <button type="button" class="opcja" data-v="wspolnie"><b>Wspólnie</b></button>
+        <button type="button" class="opcja" data-v="ktos_inny"><b>Ktoś inny</b></button>
+      </div>
+    </fieldset>
+
+    <label class="pole" id="poleDrugiEmail" hidden>
+      <span class="etykieta">E-mail osoby, która decyduje razem z Tobą</span>
+      <input type="email" id="drugiEmail" maxlength="150" autocomplete="off">
+      <span class="podpowiedz">Wyślemy tam krótszą wiadomość: co ta decyzja oznacza w domu, bez parametrów technicznych.</span>
+    </label>
+
+    <fieldset class="pole">
+      <legend class="etykieta">O której porze możemy zadzwonić</legend>
+      <div class="wybor" data-pole="poraTelefonu">
+        <button type="button" class="opcja" data-v="rano"><b>Rano</b><span>8-11</span></button>
+        <button type="button" class="opcja" data-v="poludnie"><b>W południe</b><span>11-14</span></button>
+        <button type="button" class="opcja" data-v="popoludnie"><b>Po południu</b><span>14-17</span></button>
+        <button type="button" class="opcja" data-v="wieczor"><b>Wieczorem</b><span>17-20</span></button>
+        <button type="button" class="opcja" data-v="dowolna"><b>Obojętnie</b></button>
+      </div>
+    </fieldset>
+
+    <!-- Honeypot. Niewidoczny dla czlowieka, kuszacy dla bota. Uzupelnienie
+         Turnstile, nie zamiennik. -->
+    <div class="pulapka" aria-hidden="true">
+      <label>Nazwa firmy<input type="text" id="firma" tabindex="-1" autocomplete="off"></label>
+    </div>
+
+    <!-- ================= KLAUZULA INFORMACYJNA ART. 13 RODO =================
+         Widoczna przy formularzu, nie schowana pod linkiem. -->
+    <div class="klauzula" id="klauzula" data-wersja="1.0-2026-09-02">
+      <h3>Kto przetwarza Twoje dane i po co</h3>
+      <p><b>Administrator:</b> DEWAX Sp. z o.o., ul. Ostrowska 1, 63-330 Dobrzyca, NIP 6080071501, KRS 0000298299. Kontakt: <a href="mailto:biuro@dewax.pl">biuro@dewax.pl</a>, tel. 62 7413 227.</p>
+      <p><b>Cele i podstawy:</b></p>
+      <ul>
+        <li>przygotowanie wyceny i kontakt w jej sprawie - art. 6 ust. 1 lit. b RODO (działania przed zawarciem umowy);</li>
+        <li>marketing własnych usług, jeśli wyrazisz na to zgodę - art. 6 ust. 1 lit. a RODO;</li>
+        <li>ustalenie i obrona roszczeń - art. 6 ust. 1 lit. f RODO (nasz prawnie uzasadniony interes).</li>
+      </ul>
+      <p><b>Odbiorcy:</b> HubSpot Inc. (system CRM, podmiot przetwarzający), Cloudflare Inc. i Netlify Inc. (infrastruktura), Resend (wysyłka poczty). Część z nich przetwarza dane <b>poza Europejskim Obszarem Gospodarczym</b>, w Stanach Zjednoczonych. Transfer odbywa się na podstawie standardowych klauzul umownych i decyzji Komisji Europejskiej o adekwatnym stopniu ochrony (EU-US Data Privacy Framework).</p>
+      <p><b>Jak długo:</b> dane z wyceny przechowujemy 24 miesiące od ostatniego kontaktu, a jeśli dojdzie do umowy - przez okres wymagany przepisami o rachunkowości. Zgodę marketingową przechowujemy do jej wycofania.</p>
+      <p><b>Twoje prawa:</b> dostęp do danych, sprostowanie, usunięcie, ograniczenie przetwarzania, przenoszenie, sprzeciw wobec przetwarzania opartego na uzasadnionym interesie, a w zakresie zgody - jej wycofanie w każdej chwili (bez wpływu na to, co było wcześniej). Napisz na <a href="mailto:biuro@dewax.pl">biuro@dewax.pl</a>.</p>
+      <p><b>Skarga:</b> masz prawo wnieść skargę do Prezesa Urzędu Ochrony Danych Osobowych, ul. Stawki 2, 00-193 Warszawa.</p>
+      <p><b>Dobrowolność:</b> podanie danych jest dobrowolne, ale bez telefonu albo e-maila nie przygotujemy wyceny.</p>
+    </div>
+
+    <!-- Dwie osobne zgody, obie niezaznaczone, oddzielone od regulaminu.
+         Art. 398 Prawa komunikacji elektronicznej (art. 172 Prawa
+         telekomunikacyjnego zostal uchylony). -->
+    <div class="zgody">
+      <label class="zgoda">
+        <input type="checkbox" id="zgodaTelefon">
+        <span>Zgadzam się na kontakt telefoniczny ze strony DEWAX Sp. z o.o. w sprawie tej wyceny, na podany przeze mnie numer.</span>
+      </label>
+      <label class="zgoda">
+        <input type="checkbox" id="zgodaEmail">
+        <span>Zgadzam się na otrzymanie wyceny i informacji o niej pocztą elektroniczną na podany przeze mnie adres.</span>
+      </label>
+      <p class="drobne">Każdą z tych zgód możesz wycofać w każdej chwili, pisząc na biuro@dewax.pl. Wysyłając formularz potwierdzasz też, że znasz <a href="regulamin.html" target="_blank" rel="noopener">regulamin usługi</a> i <a href="prywatnosc.html" target="_blank" rel="noopener">politykę prywatności</a>.</p>
+    </div>
+
+    <div id="turnstile" class="turnstile"></div>
+
+    <div class="akcje">
+      <button type="submit" class="btn btn-glowny btn-duzy" id="wyslij">Wyślij i umów rozmowę</button>
+      <button type="button" class="btn btn-tekst" data-wroc="3">Wróć do widełek</button>
+    </div>
+    <p class="blad" id="bladFormularz" hidden></p>
+  </form>
+</section>
+
+<!-- ===================== EKRAN 5 - POTWIERDZENIE ===================== -->
+<section id="ekran-5" class="ekran" hidden>
+  <div class="karta karta-koniec">
+    <h1>Zapisane</h1>
+    <p id="koniecTekst"></p>
+    <p>Wycenę wysłaliśmy też na Twój e-mail, razem z linkiem, którym możesz później zmienić odpowiedzi. Link jest ważny 90 dni.</p>
+    <p class="drobne">Gdyby wiadomość nie dotarła w ciągu kilku minut, sprawdź folder ze spamem albo zadzwoń: <a href="tel:+48627413227">62 7413 227</a>.</p>
+  </div>
+</section>
+
+</main>
+
+<footer class="stopka">
+  <div class="wrap">
+    <p><b>DEWAX Sp. z o.o.</b>, ul. Ostrowska 1, 63-330 Dobrzyca · NIP 6080071501 · KRS 0000298299</p>
+    <p><a href="regulamin.html">Regulamin usługi</a> · <a href="prywatnosc.html">Polityka prywatności</a> · <a href="tel:+48627413227">62 7413 227</a> · <a href="mailto:biuro@dewax.pl">biuro@dewax.pl</a></p>
+  </div>
+</footer>
+
+<script src="core/dewax-core.js"></script>
+<script src="konfigurator.js"></script>
+</body>
+</html>

@@ -2,3 +2,6 @@
 _podglad-testowy.html
 .claude/
 node_modules/
+
+# katalog wydania publicznego (generowany przez publiczny/przygotuj.js)
+publiczny/core/
