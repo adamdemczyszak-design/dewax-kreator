@@ -1,0 +1,165 @@
+{
+  "wersja": "pub-2026.09.1",
+  "data": "2026-09-02",
+  "uwaga": "CENNIK PUBLICZNY. Uproszczony, tylko dla konfiguratora klienta. Nie zawiera zadnej stawki jednostkowej z cennika zespolu - test core/test-rozdzielnosci.mjs to sprawdza. Wartosci typowe sa wyprowadzone z prawdziwych wycen dla domow referencyjnych i zaokraglone tak, zeby nie dalo sie z nich odtworzyc cen zakupu.",
+  "czescPewna": {
+    "opis": "Pompa ciepla, montaz i instalacja wewnetrzna. Ta czesc jest przewidywalna, bo nie zalezy od tego, co jest pod dzialka.",
+    "zawiera": [
+      "gruntowa pompa ciepla z osprzetem",
+      "zasobnik ciepłej wody i bufor",
+      "montaz w kotlowni, podlaczenie hydrauliczne i elektryczne",
+      "uruchomienie i konfiguracja sterowania",
+      "transport i materialy"
+    ],
+    "rozrzut": 0.09,
+    "dopłataIstniejacy": 4000,
+    "pasma": [
+      {
+        "doM2": 100,
+        "mocKw": 6,
+        "typowaBrutto": 49000
+      },
+      {
+        "doM2": 140,
+        "mocKw": 8.5,
+        "typowaBrutto": 51000
+      },
+      {
+        "doM2": 180,
+        "mocKw": 10,
+        "typowaBrutto": 53000
+      },
+      {
+        "doM2": 220,
+        "mocKw": 13,
+        "typowaBrutto": 57000
+      },
+      {
+        "doM2": 300,
+        "mocKw": 16,
+        "typowaBrutto": 61000
+      }
+    ],
+    "powyzejPasmaM2": 300,
+    "powyzejPasmaTekst": "Dom powyzej 300 m2 wyceniamy indywidualnie - przy tej wielkosci roznice miedzy budynkami sa wieksze niz jakiekolwiek widelki.",
+    "opcje": [
+      {
+        "klucz": "cwuPowiekszona",
+        "nazwa": "wiekszy zasobnik cieplej wody",
+        "brutto": 2000
+      },
+      {
+        "klucz": "chlodzenie",
+        "nazwa": "chlodzenie pasywne latem",
+        "brutto": 6500
+      },
+      {
+        "klucz": "rekuperacja",
+        "nazwa": "rekuperacja (wentylacja z odzyskiem)",
+        "brutto": 19000
+      }
+    ],
+    "maksRozpietosc": 0.2
+  },
+  "strefaDomyslna": "B",
+  "strefyGruntu": {
+    "A": {
+      "kod": "A",
+      "nazwa": "grunt korzystny",
+      "opis": "Wilgotne piaski i gliny, plytki poziom wod. Grunt oddaje cieplo latwo, wiec odwiert moze byc krotszy.",
+      "mbNaKw": 21,
+      "stawkaMbBrutto": 145,
+      "rozrzut": 0.18
+    },
+    "B": {
+      "kod": "B",
+      "nazwa": "grunt przecietny",
+      "opis": "Typowe warunki dla wiekszosci Polski nizinnej. Mieszane warstwy piasku i gliny.",
+      "mbNaKw": 24,
+      "stawkaMbBrutto": 162,
+      "rozrzut": 0.2
+    },
+    "C": {
+      "kod": "C",
+      "nazwa": "grunt trudny",
+      "opis": "Suche piaski, zwiry albo skala. Wiercenie idzie wolniej, a metr odwiertu daje mniej ciepla.",
+      "mbNaKw": 27,
+      "stawkaMbBrutto": 182,
+      "rozrzut": 0.25
+    },
+    "D": {
+      "kod": "D",
+      "nazwa": "grunt wymagajacy rozpoznania",
+      "opis": "Rejon o duzej zmiennosci albo o slabym rozpoznaniu geologicznym. Tu widelki sa najszersze i najszybciej zwezaja sie po rozpoznaniu.",
+      "mbNaKw": 30,
+      "stawkaMbBrutto": 205,
+      "rozrzut": 0.3
+    }
+  },
+  "dotacja": {
+    "nowy": {
+      "nazwa": "Moje Cieplo",
+      "udzial": 0.3,
+      "maks": 21000,
+      "zastrzezenie": "Szacunek. O przyznaniu i wysokosci decyduje NFOSiGW na podstawie wniosku, nie DEWAX. Program moze zmienic warunki albo wyczerpac budzet."
+    },
+    "istniejacy": {
+      "nazwa": "Czyste Powietrze",
+      "udzial": 0.35,
+      "maks": 31500,
+      "zastrzezenie": "Szacunek dla najwyzszego poziomu dofinansowania. Rzeczywista kwota zalezy od dochodu w gospodarstwie domowym i od decyzji WFOSiGW, nie od DEWAX."
+    }
+  },
+  "eksploatacja": {
+    "opis": "Szacunkowy roczny koszt ogrzewania i cieplej wody. Liczony dla srednich cen energii z II kwartalu 2026 i dla przecietnego sezonu grzewczego.",
+    "cenaPraduZlKwh": 0.89,
+    "scopTypowy": 4.6,
+    "porownanie": {
+      "gaz": {
+        "nazwa": "kociol gazowy kondensacyjny",
+        "cenaZlKwh": 0.36,
+        "sprawnosc": 0.91
+      },
+      "pelet": {
+        "nazwa": "kociol na pelet",
+        "cenaZlKwh": 0.37,
+        "sprawnosc": 0.84
+      },
+      "wegiel": {
+        "nazwa": "kociol na ekogroszek",
+        "cenaZlKwh": 0.22,
+        "sprawnosc": 0.64
+      },
+      "prad": {
+        "nazwa": "ogrzewanie elektryczne",
+        "cenaZlKwh": 0.89,
+        "sprawnosc": 1
+      }
+    },
+    "zastrzezenie": "Rzeczywisty rachunek zalezy od temperatury w domu, przyzwyczajen domownikow, pogody i taryfy. Nie podajemy rocznego rachunku w zlotowkach jako obietnicy."
+  },
+  "kiedySieNieOplaca": [
+    {
+      "tytul": "Dom, ktory dopiero bedzie ocieplany",
+      "tresc": "Pompa gruntowa dobiera sie do zapotrzebowania budynku. Jesli za rok albo dwa planujesz ocieplenie albo wymiane okien, dobrana dzis pompa bedzie za duza - a za duza pompa pracuje gorzej i kosztuje wiecej niz trzeba. Warto najpierw ocieplic, potem wyceniac."
+    },
+    {
+      "tytul": "Dzialka bez miejsca albo bez dojazdu dla wiertnicy",
+      "tresc": "Wiertnica potrzebuje okolo 3 m szerokosci przejazdu i miejsca do pracy przy odwiercie. Jesli dojazdu nie ma, pozostaje kolektor poziomy - a ten wymaga duzej wolnej powierzchni dzialki. Gdy nie ma ani jednego, ani drugiego, gruntowa pompa po prostu nie wchodzi w gre i uczciwiej powiedziec to od razu."
+    },
+    {
+      "tytul": "Dom uzywany sezonowo albo z bardzo malym zuzyciem",
+      "tresc": "Gruntowa pompa jest drozsza na starcie od powietrznej wlasnie z powodu dolnego zrodla. Ta roznica zwraca sie przez lata nizszymi kosztami eksploatacji. W domu ogrzewanym kilka tygodni w roku albo o bardzo malym zapotrzebowaniu ta roznica nie zdazy sie zwrocic i tanszym rozwiazaniem zostaje pompa powietrzna."
+    }
+  ],
+  "wazneDni": 30,
+  "zastrzezenie": "Kalkulacja orientacyjna. Nie stanowi oferty w rozumieniu art. 66 Kodeksu cywilnego. Ceny brutto. Ostateczna cena zalezy od rozpoznania gruntu, stanu instalacji wewnetrznej, dostepu na dzialce i wybranego wyposazenia.",
+  "coZmieniaCene": [
+    "rzeczywista wydajnosc gruntu na dzialce - wychodzi po rozpoznaniu",
+    "stan i typ instalacji wewnetrznej (podlogowka czy grzejniki, srednice, rozdzielacze)",
+    "dostep na dzialke dla wiertnicy i odleglosc odwiertu od budynku",
+    "stan kotlowni i to, co trzeba w niej przerobic",
+    "wybrany zasobnik cieplej wody i wyposazenie dodatkowe",
+    "termin realizacji i ceny materialow w dniu zamowienia"
+  ]
+}
