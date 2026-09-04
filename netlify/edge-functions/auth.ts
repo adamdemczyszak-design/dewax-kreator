@@ -1,34 +1,17 @@
 import type { Context } from "@netlify/edge-functions";
 
 /**
- * Brama HTTP Basic Auth przed kreatorem + wstrzyknięcie kodów dostępu.
+ * Brama HTTP Basic Auth przed kreatorem.
  *
  * Działa na brzegu Netlify, więc login i hasło nigdy nie trafiają do kodu
  * wysyłanego przeglądarce. Bramka w JavaScripcie po stronie klienta byłaby
  * pozorna: hasło widać w podglądzie źródła, a w kreatorze są dane osobowe.
  *
- * CO ZMIENIONO I DLACZEGO (02.09.2026)
- *
- * Druga rola tej bramy jest nowa: podstawia kody dostępu do Workerów w miejsce
- * znacznika w index.html — dokładnie tak, jak robi to od dawna kokpit.
- *
- * Powód: do tej pory handlowiec wpisywał kod dostępu ręcznie na osobnym
- * ekranie, a kreator trzymał go w localStorage. Kod krążył więc po urządzeniach
- * i komunikatorach, żył tam bezterminowo i nie było jak go unieważnić bez
- * obdzwaniania ludzi. Po tej zmianie kod nigdy nie przechodzi przez ręce
- * użytkownika: dociera do przeglądarki dopiero po zalogowaniu do bramy,
- * a jego wymiana to zmiana jednej zmiennej w panelu.
- *
- * Kody są dwa, osobne: do Workera HubSpota i do Workera wysyłki. Wyciek
- * jednego nie otwiera drugiego.
- *
- * Wszystkie wartości pochodzą wyłącznie ze zmiennych środowiskowych
- * ustawionych w panelu Netlify. W repozytorium nie ma i nie może być
- * żadnego sekretu.
+ * Wartości pochodzą wyłącznie ze zmiennych środowiskowych ustawionych
+ * w panelu Netlify. W repozytorium nie ma i nie może być żadnego sekretu.
  */
 
 const REALM = "DEWAX Kreator";
-const ZNACZNIK = "<!-- DEWAX-KONFIG -->";
 
 /** SHA-256 zwraca zawsze 32 bajty, więc porównanie nie zdradza długości hasła. */
 async function skrot(tekst: string): Promise<Uint8Array> {
@@ -69,15 +52,6 @@ function odmowa(): Response {
       "Cache-Control": "no-store",
     },
   });
-}
-
-/**
- * Wartość do wnętrza <script>. JSON.stringify zamyka cudzysłowy i znaki
- * sterujące, a ucieczka "<" pilnuje, żeby żaden ciąg nie zamknął znacznika
- * script przedwcześnie.
- */
-function jakoJs(wartosc: string): string {
-  return JSON.stringify(wartosc).replace(/</g, "\\u003c");
 }
 
 export default async (request: Request, context: Context) => {
@@ -130,39 +104,6 @@ export default async (request: Request, context: Context) => {
     return odmowa();
   }
 
-  // Zgoda: bierzemy statyczny plik i podstawiamy w nim kody dostępu.
-  const odpowiedz = await context.next();
-
-  const typ = odpowiedz.headers.get("Content-Type") ?? "";
-  if (!typ.includes("text/html")) {
-    return odpowiedz;
-  }
-
-  const html = await odpowiedz.text();
-  if (!html.includes(ZNACZNIK)) {
-    // Znacznik zniknął z index.html — kreator i tak nie ruszy bez kodu,
-    // więc mówimy o tym wprost zamiast wydawać stronę, która milczy.
-    return new Response(
-      "Brak znacznika konfiguracji w index.html — kreator nie może wystartować.",
-      { status: 500, headers: { "Cache-Control": "no-store" } },
-    );
-  }
-
-  const konfig =
-    "<script>window.DEWAX_KONFIG={" +
-    "kodWorkera:" + jakoJs(Netlify.env.get("DEWAX_AUTH_TOKEN") ?? "") + "," +
-    "kodSend:" + jakoJs(Netlify.env.get("DEWAX_SEND_TOKEN") ?? "") +
-    "};</script>";
-
-  const naglowki = new Headers(odpowiedz.headers);
-  // Strona niesie teraz kod dostępu — żaden wspólny cache ani CDN
-  // nie ma prawa jej przechować.
-  naglowki.set("Cache-Control", "no-store, private");
-  naglowki.delete("Content-Length");
-  naglowki.delete("ETag");
-
-  return new Response(html.replace(ZNACZNIK, konfig), {
-    status: odpowiedz.status,
-    headers: naglowki,
-  });
+  // Zgoda: przepuszczamy żądanie dalej, do statycznego pliku.
+  return context.next();
 };
