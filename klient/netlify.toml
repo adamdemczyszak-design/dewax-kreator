@@ -1,0 +1,42 @@
+# Konfiguracja Netlify dla publicznego konfiguratora (projekt `dewax-pompy`).
+#
+# To OSOBNA strona od `dewax-kreator`. W panelu Netlify ten projekt ma ustawiony
+# katalog bazowy `klient`, więc czyta ten plik, a nie netlify.toml z katalogu
+# głównego repozytorium. Dzięki temu brama HTTP Basic kreatora zespołowego
+# (edge function `auth`) NIE obejmuje tej strony - i tak ma być: strona jest
+# publiczna.
+#
+# Sekrety wyłącznie w zmiennych środowiskowych panelu Netlify (patrz README.md).
+
+[build]
+  base = "klient"
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+
+# Meta Pixel i klucz Turnstile wstrzykuje build.mjs z zmiennych środowiskowych.
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    # Adres z linku powrotnego (?k=...) nie może wyciekać do stron trzecich.
+    Referrer-Policy = "no-referrer"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://connect.facebook.net https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://www.facebook.com; font-src 'self'; connect-src 'self' https://www.facebook.com https://connect.facebook.net https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com https://www.facebook.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"
+
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Cache-Control = "no-store"
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/*.png"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"

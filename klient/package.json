@@ -1,0 +1,18 @@
+{
+  "name": "dewax-konfigurator-klienta",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Publiczny konfigurator pomp ciepla DEWAX (pompy.dewax.pl) - front statyczny + funkcje Netlify",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node --test testy/*.test.mjs",
+    "start": "node testy/serwer-dev.mjs"
+  },
+  "dependencies": {
+    "@netlify/blobs": "^8.2.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

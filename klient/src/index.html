@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Konfigurator gruntowej pompy ciepła - DEWAX</title>
+<meta name="description" content="Wybierz dom, pompę Thermokrafft i wariant dolnego źródła. Zobaczysz widełki ceny całego systemu i umówisz telefon w sprawie dokładnej wyceny.">
+<meta name="theme-color" content="#2a2e78">
+<link rel="icon" type="image/png" href="favicon.png">
+<meta property="og:title" content="Konfigurator gruntowej pompy ciepła - DEWAX">
+<meta property="og:description" content="Policz widełki ceny gruntowej pompy ciepła z odwiertem dla swojego domu.">
+<meta property="og:url" content="__ADRES_STRONY__/">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="pl_PL">
+<!-- META-PIXEL-START -->
+<script>
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '__META_PIXEL_ID__');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none" alt="" src="https://www.facebook.com/tr?id=__META_PIXEL_ID__&ev=PageView&noscript=1"></noscript>
+<!-- META-PIXEL-END -->
+<style>
+:root{
+  --navy:#2a2e78; --blue:#3b5dc9; --dark:#1a1d50; --light:#f0f3fa; --sky:#5ba4e5;
+  --green:#27ae60; --red:#c0392b; --ink:#1b2437; --ink-2:#4b5566; --ink-3:#6b7485;
+  --line:#dbe1ee; --bg:#f4f6fb; --card:#ffffff;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--blue)}
+.skip{position:absolute;left:-999px;top:0;background:#fff;padding:8px;z-index:10}
+.skip:focus{left:8px}
+header.top{background:linear-gradient(90deg,var(--dark),var(--navy));color:#fff}
+.pasek{height:3px;background:linear-gradient(90deg,#e74c3c,#f1c40f,#27ae60,#5ba4e5)}
+.top .w{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px}
+.logo{background:#fff;border-radius:10px;padding:6px 10px;display:inline-flex;align-items:center}
+.logo img{height:26px;width:auto;display:block}
+.top .tel{color:#fff;text-decoration:none;font-weight:700;font-size:15px;white-space:nowrap}
+.top .tel small{display:block;font-weight:400;font-size:11px;opacity:.8}
+.w{max-width:680px;margin:0 auto}
+main{padding:16px 16px 40px}
+h1{font-size:22px;line-height:1.3;margin:6px 0 6px;letter-spacing:-.01em}
+.lead{margin:0 0 16px;color:var(--ink-2);font-size:15px}
+.postep{display:flex;align-items:center;gap:10px;margin:0 0 14px;font-size:13px;color:var(--ink-3)}
+.postep .tor{flex:1;height:6px;background:#e3e8f3;border-radius:6px;overflow:hidden}
+.postep .tor i{display:block;height:100%;background:linear-gradient(90deg,var(--navy),var(--blue));width:0;transition:width .3s}
+.krok{display:none;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 16px;box-shadow:0 6px 24px -14px rgba(42,46,120,.25)}
+.krok.aktywny{display:block;animation:wjazd .3s ease}
+@keyframes wjazd{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+h2{font-size:19px;margin:0 0 4px}
+h2:focus,.wynik:focus{outline:none}
+.opis{margin:0 0 14px;color:var(--ink-3);font-size:14px}
+fieldset{border:0;padding:0;margin:0 0 18px;min-width:0}
+legend,label.et{display:block;font-weight:700;font-size:14px;margin:0 0 8px;padding:0}
+.opcje{display:grid;gap:8px}
+.opcje.dwie{grid-template-columns:1fr 1fr}
+.opcja{position:relative;display:block;border:2px solid var(--line);border-radius:12px;padding:12px 14px;background:#fff;cursor:pointer;min-height:48px;transition:border-color .15s,background .15s}
+.opcja input{position:absolute;opacity:0;width:1px;height:1px}
+.opcja b{display:block;font-size:15px}
+.opcja span{display:block;font-size:13px;color:var(--ink-3);margin-top:2px}
+.opcja:hover{border-color:#b9c4dd}
+.opcja.wybrana{border-color:var(--blue);background:linear-gradient(135deg,#eff3ff,#f8faff)}
+.opcja:focus-within{outline:3px solid rgba(59,93,201,.35);outline-offset:1px}
+.opcja .znak{position:absolute;right:12px;top:10px;font-size:11px;font-weight:700;color:var(--green);background:#e8f8ee;border-radius:6px;padding:2px 7px}
+input[type=text],input[type=tel],input[type=email],input[type=number]{width:100%;font:inherit;font-size:17px;padding:12px 14px;border:2px solid var(--line);border-radius:12px;background:#fff;color:var(--ink);min-height:48px}
+input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(59,93,201,.15)}
+.m2{display:flex;gap:8px;align-items:center}
+.m2 input{flex:1}
+.m2 .j{font-weight:700;color:var(--ink-2)}
+.szybkie{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.szybkie button{font:inherit;font-size:13px;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--ink-2);cursor:pointer}
+.szybkie button:hover{border-color:var(--blue);color:var(--blue)}
+.pole{margin:0 0 14px}
+.blad{color:var(--red);font-size:13px;margin:6px 0 0;min-height:0}
+.blad:empty{display:none}
+.zgoda{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--ink-2);margin:6px 0 4px}
+.zgoda input{width:22px;height:22px;flex-shrink:0;margin:0;accent-color:var(--blue)}
+.hp{position:absolute;left:-9999px;top:-9999px;height:0;overflow:hidden}
+.nav{display:flex;gap:10px;justify-content:space-between;margin-top:18px}
+.btn{font:inherit;font-weight:700;font-size:16px;border:0;border-radius:12px;padding:14px 18px;min-height:50px;cursor:pointer;color:#fff;background:linear-gradient(135deg,var(--navy),var(--blue));flex:1;transition:transform .15s,box-shadow .15s}
+.btn:hover{transform:translateY(-1px);box-shadow:0 8px 24px -8px rgba(42,46,120,.5)}
+.btn:disabled{opacity:.6;cursor:wait;transform:none;box-shadow:none}
+.btn.wstecz{background:#fff;color:var(--ink-2);border:2px solid var(--line);flex:0 0 auto;padding:12px 16px}
+.btn.zielony{background:linear-gradient(135deg,var(--green),#2ecc71)}
+.info{background:#eff3ff;border:1px solid #dde4f5;border-radius:12px;padding:12px 14px;font-size:14px;color:var(--navy);margin:0 0 14px}
+.uwaga{background:#fff7e6;border:1px solid #f5d89a;color:#7a5200;border-radius:12px;padding:12px 14px;font-size:14px;margin:12px 0 0}
+.wynik{text-align:center;padding:8px 0 4px}
+.wynik .e{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);font-weight:700}
+.wynik .kwota{font-size:32px;font-weight:900;letter-spacing:-.02em;color:var(--navy);margin:6px 0 2px;line-height:1.15}
+.wynik .kwota small{font-size:16px;font-weight:700;color:var(--ink-2)}
+.wynik .pod{font-size:13px;color:var(--ink-3)}
+.rozbicie{margin:16px 0 0;border-top:1px solid var(--line)}
+.rozbicie div{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
+.rozbicie div span{color:var(--ink-2)}
+.rozbicie div b{white-space:nowrap}
+.male{font-size:12px;color:var(--ink-3);margin:12px 0 0}
+.chipy{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 14px}
+.chip{font:inherit;font-size:14px;padding:10px 14px;border-radius:999px;border:2px solid var(--line);background:#fff;cursor:pointer;color:var(--ink);min-height:44px}
+.chip.wybrany{border-color:var(--blue);background:#eff3ff;color:var(--navy);font-weight:700}
+.ok{background:#e8f8ee;border:1px solid #bfe8cd;color:#1d6b3a;border-radius:12px;padding:14px;font-size:15px}
+.ukryte{display:none!important}
+footer{border-top:1px solid var(--line);margin-top:24px;padding:22px 16px 30px;color:var(--ink-3);font-size:12px;line-height:1.6}
+footer .w{display:grid;gap:10px}
+footer img{height:26px;width:auto;filter:invert(1) brightness(.35)}
+footer a{color:var(--ink-2)}
+@media (min-width:560px){main{padding:24px 20px 48px}.krok{padding:24px 24px}h1{font-size:26px}.opcje.trzy{grid-template-columns:1fr 1fr 1fr}}
+@media (prefers-reduced-motion:reduce){.krok.aktywny{animation:none}.btn:hover{transform:none}}
+</style>
+</head>
+<body>
+<a class="skip" href="#glowna">Przejdź do konfiguratora</a>
+<header class="top">
+  <div class="pasek"></div>
+  <div class="w">
+    <a class="logo" href="__ADRES_STRONY__/" aria-label="DEWAX, strona główna konfiguratora"><img src="logo.png" alt="DEWAX" width="479" height="134"></a>
+    <a class="tel" href="tel:+48627413227">62 741 32 27<small>pon.-pt. 8:00-16:00</small></a>
+  </div>
+</header>
+
+<main id="glowna" class="w">
+  <h1>Gruntowa pompa ciepła dla Twojego domu</h1>
+  <p class="lead">Pięć krótkich kroków. Na końcu zobaczysz widełki ceny całego systemu: pompa, odwierty, montaż.</p>
+
+  <div class="postep" aria-live="polite"><span id="postepTekst">Krok 1 z 5</span><div class="tor"><i id="postepPasek"></i></div></div>
+
+  <!-- KROK 1: DOM -->
+  <section class="krok aktywny" data-krok="1" aria-labelledby="h1k">
+    <h2 id="h1k">Twój dom</h2>
+    <p class="opis">Na tej podstawie policzymy, ile ciepła potrzebuje dom i jak długie musi być dolne źródło.</p>
+    <div class="pole">
+      <label class="et" for="m2">Powierzchnia ogrzewana</label>
+      <div class="m2"><input type="number" id="m2" inputmode="numeric" min="30" max="1000" step="1" value="150" autocomplete="off"><span class="j">m²</span></div>
+      <div class="szybkie" aria-label="Szybki wybór powierzchni">
+        <button type="button" data-m2="100">100</button><button type="button" data-m2="130">130</button><button type="button" data-m2="150">150</button><button type="button" data-m2="180">180</button><button type="button" data-m2="220">220</button><button type="button" data-m2="300">300</button>
+      </div>
+      <p class="blad" id="bladM2"></p>
+    </div>
+    <fieldset>
+      <legend>Stan budynku</legend>
+      <div class="opcje" id="stan"></div>
+    </fieldset>
+    <fieldset>
+      <legend>Ogrzewanie w domu</legend>
+      <div class="opcje" id="ogrzewanie"></div>
+    </fieldset>
+    <div class="nav"><button class="btn" type="button" data-dalej="2">Dalej</button></div>
+  </section>
+
+  <!-- KROK 2: POMPA -->
+  <section class="krok" data-krok="2" aria-labelledby="h2k">
+    <h2 id="h2k">Pompa ciepła Thermokrafft</h2>
+    <p class="opis">Zaznaczyliśmy model dopasowany do Twojego domu. Możesz wybrać inny.</p>
+    <div class="info" id="mocInfo"></div>
+    <fieldset>
+      <legend class="ukryte">Model pompy</legend>
+      <div class="opcje" id="pompa"></div>
+    </fieldset>
+    <div class="uwaga ukryte" id="pompaUwaga"></div>
+    <div class="nav"><button class="btn wstecz" type="button" data-wstecz="1">Wstecz</button><button class="btn" type="button" data-dalej="3">Dalej</button></div>
+  </section>
+
+  <!-- KROK 3: DOLNE ŹRÓDŁO -->
+  <section class="krok" data-krok="3" aria-labelledby="h3k">
+    <h2 id="h3k">Dolne źródło</h2>
+    <p class="opis">Skąd pompa ma brać ciepło. Odwierty pionowe to nasz standard: mało miejsca, stabilna praca.</p>
+    <fieldset>
+      <legend class="ukryte">Wariant dolnego źródła</legend>
+      <div class="opcje" id="dz"></div>
+    </fieldset>
+    <div class="nav"><button class="btn wstecz" type="button" data-wstecz="2">Wstecz</button><button class="btn" type="button" data-dalej="4">Dalej</button></div>
+  </section>
+
+  <!-- KROK 4: KWALIFIKACJA -->
+  <section class="krok" data-krok="4" aria-labelledby="h4k">
+    <h2 id="h4k">Cztery pytania o inwestycję</h2>
+    <p class="opis">Dzięki nim handlowiec zadzwoni przygotowany, a nie z pytaniami od zera.</p>
+    <fieldset><legend>Czy na działce jest miejsce na odwiert? Wiertnica potrzebuje wjazdu o szerokości około 3 m.</legend><div class="opcje trzy" id="odwiert"></div></fieldset>
+    <fieldset><legend>Kiedy chcesz mieć instalację?</legend><div class="opcje" id="termin"></div></fieldset>
+    <fieldset><legend>Kto decyduje o zakupie?</legend><div class="opcje" id="decyzja"></div></fieldset>
+    <fieldset><legend>Na jakim etapie jest budowa?</legend><div class="opcje dwie" id="etap"></div></fieldset>
+    <p class="blad" id="bladKwal"></p>
+    <div class="nav"><button class="btn wstecz" type="button" data-wstecz="3">Wstecz</button><button class="btn" type="button" data-dalej="5">Dalej</button></div>
+  </section>
+
+  <!-- KROK 5: KONTAKT -->
+  <section class="krok" data-krok="5" aria-labelledby="h5k">
+    <h2 id="h5k">Gdzie wysłać widełki?</h2>
+    <p class="opis">Widełki pokażemy od razu na ekranie i wyślemy na e-mail razem z linkiem do Twojej konfiguracji.</p>
+    <form id="formKontakt" novalidate autocomplete="on">
+      <p class="hp" aria-hidden="true"><label for="firma">Nie wypełniaj tego pola</label><input id="firma" name="firma" tabindex="-1" autocomplete="off"></p>
+      <div class="pole"><label class="et" for="imie">Imię i nazwisko</label><input type="text" id="imie" name="name" autocomplete="name" maxlength="80" required><p class="blad" id="bladImie"></p></div>
+      <div class="pole"><label class="et" for="telefon">Telefon</label><input type="tel" id="telefon" name="tel" autocomplete="tel" inputmode="tel" placeholder="np. 600 700 800" required><p class="blad" id="bladTelefon"></p></div>
+      <div class="pole"><label class="et" for="email">E-mail</label><input type="email" id="email" name="email" autocomplete="email" inputmode="email" required><p class="blad" id="bladEmail"></p></div>
+      <div class="pole"><label class="et" for="adres">Adres inwestycji</label><input type="text" id="adres" name="address" autocomplete="street-address" placeholder="miejscowość, ulica" maxlength="200" required><p class="blad" id="bladAdres"></p></div>
+      <div class="zgoda">
+        <input type="checkbox" id="zgoda" required>
+        <label for="zgoda">Zgadzam się na kontakt telefoniczny i e-mailowy w sprawie tej konfiguracji. Administratorem danych jest DEWAX Sp. z o.o., ul. Ostrowska 1, 63-330 Dobrzyca. Dane posłużą tylko do przygotowania wyceny i kontaktu w tej sprawie. <a href="https://pompy.dewax.pl/polityka-prywatnosci.html" target="_blank" rel="noopener">Polityka prywatności</a>.</label>
+      </div>
+      <p class="blad" id="bladZgoda"></p>
+      <div id="turnstile" class="cf-turnstile" data-sitekey="__TURNSTILE_SITE_KEY__" data-theme="light"></div>
+      <p class="blad" id="bladWysylka" aria-live="assertive"></p>
+      <div class="nav"><button class="btn wstecz" type="button" data-wstecz="4">Wstecz</button><button class="btn zielony" type="submit" id="btnWyslij">Pokaż widełki ceny</button></div>
+    </form>
+  </section>
+
+  <!-- KROK 6: WYNIK -->
+  <section class="krok" data-krok="6" aria-labelledby="h6k">
+    <div class="wynik">
+      <div class="e" id="wynikE">Szacunkowy koszt całego systemu</div>
+      <div class="kwota" id="wynikKwota"></div>
+      <div class="pod">brutto, z VAT 8%. Pompa, dolne źródło, montaż kotłowni i zasobnik ciepłej wody.</div>
+    </div>
+    <div class="rozbicie" id="rozbicie"></div>
+    <div class="uwaga ukryte" id="wynikUwaga"></div>
+    <p class="male">To są widełki, nie oferta. Dolna kwota odpowiada typowemu gruntowi, górna słabszemu. Dokładną cenę podajemy po rozmowie i sprawdzeniu geologii działki. Kalkulacja ważna 30 dni.</p>
+    <p class="male ukryte" id="mailInfo">Te same widełki i link do konfiguracji wysłaliśmy na Twój e-mail.</p>
+
+    <div id="terminBlok">
+      <div class="nav"><button class="btn zielony" type="button" id="btnTermin">Chcę dokładną wycenę</button></div>
+      <div class="ukryte" id="terminWybor">
+        <h2 style="margin-top:18px">Kiedy mamy zadzwonić?</h2>
+        <p class="opis">Wybierz dzień i przedział godzin. Handlowiec zadzwoni z gotową propozycją.</p>
+        <fieldset><legend>Dzień</legend><div class="chipy" id="dni"></div></fieldset>
+        <fieldset><legend>Godzina</legend><div class="chipy" id="okna"></div></fieldset>
+        <p class="blad" id="bladTermin" aria-live="assertive"></p>
+        <div class="nav"><button class="btn" type="button" id="btnTerminWyslij">Potwierdź godzinę</button></div>
+      </div>
+    </div>
+    <div class="ok ukryte" id="terminOk"></div>
+    <div class="nav" style="margin-top:14px"><button class="btn wstecz" type="button" id="btnOdNowa">Zmień konfigurację</button></div>
+  </section>
+</main>
+
+<footer>
+  <div class="w">
+    <img src="logo-biale.png" alt="DEWAX Sp. z o.o." width="300" height="84" loading="lazy">
+    <div>DEWAX Sp. z o.o., ul. Ostrowska 1, 63-330 Dobrzyca<br>Sąd Rejonowy Poznań - Nowe Miasto i Wilda w Poznaniu, IX Wydział Gospodarczy KRS<br>KRS 0000298299, NIP 6080071501, REGON 300706044, kapitał zakładowy 50 000,00 zł</div>
+    <div>Telefon <a href="tel:+48627413227">62 741 32 27</a>, e-mail <a href="mailto:biuro@dewax.pl">biuro@dewax.pl</a><br><a href="https://pompy.dewax.pl/">pompy.dewax.pl</a> · <a href="https://pompy.dewax.pl/polityka-prywatnosci.html">Polityka prywatności</a></div>
+    <div>Kalkulacja orientacyjna, nie stanowi oferty w rozumieniu art. 66 Kodeksu cywilnego. Wersja __WERSJA__.</div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  'use strict';
+  var $ = function(id){ return document.getElementById(id); };
+
+  /* ---------- słowniki (bez cen; ceny liczy serwer) ---------- */
+  var STAN = [
+    { v:'nowy', b:'Nowy dom albo w budowie', s:'standard WT 2021, dobra izolacja' },
+    { v:'ocieplony', b:'Dom z lat 2010-2020, ocieplony', s:'ściany i dach z izolacją' },
+    { v:'starszy', b:'Starszy dom po ociepleniu', s:'docieplony w trakcie użytkowania' },
+    { v:'bez', b:'Dom bez ocieplenia', s:'ściany bez izolacji, stare okna' }
+  ];
+  var WM2 = { nowy:38, ocieplony:51, starszy:65, bez:137 };
+  var OGRZ = [
+    { v:'podlogowe', b:'Ogrzewanie podłogowe', s:'najlepsze dla pompy ciepła' },
+    { v:'grzejniki', b:'Grzejniki', s:'wyższa temperatura zasilania' },
+    { v:'mieszane', b:'Podłogówka i grzejniki', s:'np. parter podłogówka, piętro grzejniki' }
+  ];
+  var POMPY = [
+    { v:'r290_g2s', b:'Thermokrafft TK-G2S', s:'2-11 kW, domy do ok. 200 m² w dobrym standardzie', moc:7.74 },
+    { v:'r290_g3s', b:'Thermokrafft TK-G3S', s:'4-13 kW', moc:9.15 },
+    { v:'r290_g5s', b:'Thermokrafft TK-G5S', s:'6-18 kW', moc:12.67 },
+    { v:'r290_g6s', b:'Thermokrafft TK-G6S', s:'10-23 kW, największe domy', moc:16.21 }
+  ];
+  var DZ = [
+    { v:'pionowe', b:'Odwierty pionowe', s:'kilka otworów do 100 m, mało miejsca na działce, nasz standard' },
+    { v:'koszowe', b:'Sondy spiralne HELIX', s:'płytsze wykopy zamiast głębokich otworów, gdy wiertnica nie wjedzie' },
+    { v:'poziome', b:'Kolektor poziomy', s:'rury na głębokości ok. 1,5 m, potrzebna duża wolna działka' }
+  ];
+  var KWAL = {
+    odwiert: [ { v:'tak', b:'Tak' }, { v:'nie', b:'Nie' }, { v:'nie_wiem', b:'Nie wiem' } ],
+    termin: [ { v:'teraz', b:'Jak najszybciej' }, { v:'kwartal', b:'W ciągu 3 miesięcy' }, { v:'polroku', b:'W ciągu pół roku' }, { v:'rok', b:'W ciągu roku' }, { v:'nie_wiem', b:'Jeszcze nie wiem' } ],
+    decyzja: [ { v:'ja', b:'Ja' }, { v:'wspolnie', b:'Wspólnie z partnerem lub rodziną' }, { v:'ktos_inny', b:'Ktoś inny' } ],
+    etap: [ { v:'projekt', b:'Projekt, przed budową' }, { v:'budowa', b:'W budowie, stan surowy' }, { v:'wykonczenie', b:'Wykończenie' }, { v:'zamieszkany', b:'Dom zamieszkany' } ]
+  };
+  var OKNA = [ { v:'8-10', b:'8:00-10:00' }, { v:'10-12', b:'10:00-12:00' }, { v:'12-14', b:'12:00-14:00' }, { v:'14-16', b:'14:00-16:00' } ];
+
+  /* ---------- stan ---------- */
+  var S = { m2:150, stan:'nowy', ogrzewanie:'podlogowe', pompa:null, dz:'pionowe',
+            odwiert:null, termin:null, decyzja:null, etap:null };
+  var token = null, wycena = null, terminData = null, terminOkno = null, krok = 1;
+
+  try { var zap = JSON.parse(sessionStorage.getItem('dx_konf') || 'null'); if (zap && typeof zap === 'object') S = Object.assign(S, zap); } catch(e){}
+  function zapamietaj(){ try { sessionStorage.setItem('dx_konf', JSON.stringify(S)); } catch(e){} }
+
+  /* ---------- UTM i pixel ---------- */
+  var POMIAR = {};
+  (function(){
+    var klucze = ['utm_source','utm_medium','utm_campaign','utm_content','utm_term','fbclid'];
+    var p = new URLSearchParams(location.search), zmiana = false;
+    try { POMIAR = JSON.parse(sessionStorage.getItem('dx_pomiar') || '{}') || {}; } catch(e){ POMIAR = {}; }
+    klucze.forEach(function(k){ if (p.get(k)) { POMIAR[k] = String(p.get(k)).slice(0, 300); zmiana = true; } });
+    if (!POMIAR.wejscie) { POMIAR.wejscie = new Date().toISOString(); zmiana = true; }
+    if (zmiana) { try { sessionStorage.setItem('dx_pomiar', JSON.stringify(POMIAR)); } catch(e){} }
+  })();
+  function pixel(zdarzenie, dane){ try { if (window.fbq) window.fbq('track', zdarzenie, dane || {}); } catch(e){} }
+
+  /* ---------- rysowanie opcji ---------- */
+  function fmt(n){ return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' '); }
+  function esc(v){ return String(v == null ? '' : v).replace(/[&<>"]/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[m]; }); }
+
+  function rysuj(id, lista, klucz, znaki){
+    var box = $(id); box.innerHTML = '';
+    lista.forEach(function(o){
+      var l = document.createElement('label');
+      l.className = 'opcja' + (S[klucz] === o.v ? ' wybrana' : '');
+      l.innerHTML = '<input type="radio" name="' + id + '" value="' + esc(o.v) + '"' + (S[klucz] === o.v ? ' checked' : '') + '><b>' + esc(o.b) + '</b>' + (o.s ? '<span>' + esc(o.s) + '</span>' : '') + (znaki && znaki[o.v] ? '<span class="znak">' + esc(znaki[o.v]) + '</span>' : '');
+      l.querySelector('input').addEventListener('change', function(){
+        S[klucz] = o.v; zapamietaj();
+        box.querySelectorAll('.opcja').forEach(function(x){ x.classList.remove('wybrana'); });
+        l.classList.add('wybrana');
+        if (klucz === 'pompa') pokazUwagePompy();
+      });
+      box.appendChild(l);
+    });
+  }
+
+  function mocProjektowa(){ return (Number(S.m2) || 0) * (WM2[S.stan] || 38) / 1000; }
+  function pompaPolecana(){ var p = mocProjektowa(); for (var i = 0; i < POMPY.length; i++) if (POMPY[i].moc >= p) return POMPY[i]; return null; }
+
+  function rysujPompy(){
+    var pol = pompaPolecana();
+    if (!S.pompa || !POMPY.some(function(p){ return p.v === S.pompa; })) S.pompa = pol ? pol.v : POMPY[POMPY.length - 1].v;
+    var znaki = {}; if (pol) znaki[pol.v] = 'polecana';
+    rysuj('pompa', POMPY, 'pompa', znaki);
+    var p = mocProjektowa();
+    $('mocInfo').textContent = 'Dom ' + S.m2 + ' m² w tym stanie potrzebuje około ' + String(Math.round(p * 10) / 10).replace('.', ',') + ' kW mocy grzewczej.' + (pol ? '' : ' To więcej, niż daje jedna pompa. Handlowiec zaproponuje układ z dwóch urządzeń.');
+    pokazUwagePompy();
+  }
+  function pokazUwagePompy(){
+    var pol = pompaPolecana(), w = POMPY.filter(function(p){ return p.v === S.pompa; })[0], u = $('pompaUwaga');
+    var p = mocProjektowa(), t = '';
+    if (w && pol && w.moc < pol.moc && w.moc < p) t = 'Ta pompa jest słabsza, niż wynika z obliczeń. W mrozy dogrzewałaby grzałką elektryczną, a to najdroższy prąd. Polecamy ' + pol.b + '.';
+    else if (w && pol && w.moc > pol.moc * 1.35) t = 'Ta pompa jest wyraźnie mocniejsza, niż potrzeba. Kosztuje więcej i wymaga dłuższych odwiertów. Polecamy ' + pol.b + '.';
+    u.textContent = t; u.classList.toggle('ukryte', !t);
+  }
+
+  /* ---------- kroki ---------- */
+  function pokazKrok(n){
+    krok = n;
+    document.querySelectorAll('.krok').forEach(function(s){ s.classList.toggle('aktywny', Number(s.getAttribute('data-krok')) === n); });
+    var wid = Math.min(n, 5);
+    $('postepTekst').textContent = n >= 6 ? 'Twoje widełki' : 'Krok ' + wid + ' z 5';
+    $('postepPasek').style.width = (n >= 6 ? 100 : (wid - 1) / 5 * 100 + 10) + '%';
+    var h = document.querySelector('.krok.aktywny h2, .krok.aktywny .wynik');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (h) { h.setAttribute('tabindex', '-1'); try { h.focus({ preventScroll: true }); } catch(e){} }
+  }
+
+  function sprawdzKrok(n){
+    if (n === 1) {
+      var m = parseInt($('m2').value, 10);
+      if (isNaN(m) || m < 30 || m > 1000) { $('bladM2').textContent = 'Podaj powierzchnię od 30 do 1000 m².'; return false; }
+      $('bladM2').textContent = ''; S.m2 = m; zapamietaj(); return true;
+    }
+    if (n === 4) {
+      var brak = ['odwiert','termin','decyzja','etap'].filter(function(k){ return !S[k]; });
+      if (brak.length) { $('bladKwal').textContent = 'Odpowiedz na wszystkie cztery pytania.'; return false; }
+      $('bladKwal').textContent = ''; return true;
+    }
+    return true;
+  }
+
+  document.querySelectorAll('[data-dalej]').forEach(function(b){
+    b.addEventListener('click', function(){
+      var cel = Number(b.getAttribute('data-dalej'));
+      if (!sprawdzKrok(cel - 1)) return;
+      if (cel === 2) rysujPompy();
+      pokazKrok(cel);
+    });
+  });
+  document.querySelectorAll('[data-wstecz]').forEach(function(b){ b.addEventListener('click', function(){ pokazKrok(Number(b.getAttribute('data-wstecz'))); }); });
+
+  $('m2').value = S.m2;
+  $('m2').addEventListener('input', function(){ var v = parseInt(this.value, 10); if (!isNaN(v)) { S.m2 = v; zapamietaj(); } });
+  document.querySelectorAll('[data-m2]').forEach(function(b){ b.addEventListener('click', function(){ $('m2').value = b.getAttribute('data-m2'); S.m2 = Number(b.getAttribute('data-m2')); zapamietaj(); $('bladM2').textContent = ''; }); });
+
+  rysuj('stan', STAN, 'stan'); rysuj('ogrzewanie', OGRZ, 'ogrzewanie'); rysuj('dz', DZ, 'dz');
+  Object.keys(KWAL).forEach(function(k){ rysuj(k, KWAL[k], k); });
+
+  /* ---------- kontakt ---------- */
+  var EMAIL = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i;
+  function telefonOk(v){ var c = String(v || '').replace(/[^\d+]/g, '').replace(/^\+?48/, '').replace(/\D/g, ''); return c.length === 9 && /^[45678]/.test(c); }
+
+  $('formKontakt').addEventListener('submit', async function(e){
+    e.preventDefault();
+    var ok = true;
+    function pole(id, warunek, komunikat){ $('blad' + id.charAt(0).toUpperCase() + id.slice(1)).textContent = warunek ? '' : komunikat; if (!warunek) ok = false; }
+    pole('imie', $('imie').value.trim().length >= 2, 'Podaj imię.');
+    pole('telefon', telefonOk($('telefon').value), 'Podaj dziewięć cyfr numeru telefonu.');
+    pole('email', EMAIL.test($('email').value.trim()), 'Podaj poprawny adres e-mail.');
+    pole('adres', $('adres').value.trim().length >= 3, 'Podaj miejscowość inwestycji.');
+    pole('zgoda', $('zgoda').checked, 'Bez zgody na kontakt nie możemy przygotować wyceny.');
+    if (!ok) return;
+
+    var btn = $('btnWyslij'); btn.disabled = true; btn.textContent = 'Liczę widełki...'; $('bladWysylka').textContent = '';
+    var turnstileToken = '';
+    try { var tsIn = document.querySelector('#turnstile input[name="cf-turnstile-response"]'); if (tsIn) turnstileToken = tsIn.value; } catch(e){}
+
+    var body = {
+      konfiguracja: { m2: S.m2, stan: S.stan, ogrzewanie: S.ogrzewanie, pompa: S.pompa, dz: S.dz },
+      kwalifikacja: { odwiert: S.odwiert, termin: S.termin, decyzja: S.decyzja, etap: S.etap },
+      kontakt: { imie: $('imie').value.trim(), telefon: $('telefon').value.trim(), email: $('email').value.trim(), adres: $('adres').value.trim(), zgoda: true },
+      pomiar: {}
+    };
+    ['utm_source','utm_medium','utm_campaign','utm_content','utm_term','fbclid','wejscie'].forEach(function(k){ if (POMIAR[k]) body.pomiar[k] = POMIAR[k]; });
+    if ($('firma').value) body.firma = $('firma').value;
+    if (turnstileToken) body.turnstile = turnstileToken;
+
+    try {
+      var r = await fetch('/api/zgloszenie', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(body) });
+      var j = null; try { j = await r.json(); } catch(e2){ j = null; }
+      if (!r.ok || !j || !j.ok || !j.wycena) throw new Error((j && j.blad) || ('Błąd serwera (' + r.status + ').'));
+      token = j.token || null; wycena = j.wycena;
+      $('mailInfo').classList.toggle('ukryte', !j.mailDoKlienta);
+      pixel('Lead', { content_name: 'konfigurator', value: Math.round((wycena.od + wycena.do) / 2), currency: 'PLN' });
+      pokazWynik(wycena, body.kontakt);
+      pokazKrok(6);
+    } catch(err) {
+      $('bladWysylka').textContent = (err && err.message) || 'Nie udało się wysłać. Spróbuj ponownie albo zadzwoń: 62 741 32 27.';
+    } finally {
+      btn.disabled = false; btn.textContent = 'Pokaż widełki ceny';
+    }
+  });
+
+  /* ---------- wynik ---------- */
+  var kontaktZapisany = null;
+  function pokazWynik(w, kontakt){
+    kontaktZapisany = kontakt || kontaktZapisany;
+    $('wynikKwota').innerHTML = fmt(w.od) + ' - ' + fmt(w.do) + ' <small>zł</small>';
+    var r = '';
+    if (w.czescStala != null) {
+      r += '<div><span>Pompa ' + esc(w.pompa && w.pompa.nazwa || '') + ', montaż kotłowni, zasobnik ciepłej wody 200 l</span><b>' + fmt(w.czescStala) + ' zł</b></div>';
+      var d = w.dolneZrodlo || {};
+      var opis = d.nazwa || '';
+      if (d.jednostka === 'm odwiertu') opis += ', ' + (d.otwory || 1) + (d.otwory > 1 ? ' otwory' : ' otwór') + ', razem ' + d.od_ilosc + '-' + d.do_ilosc + ' m';
+      else if (d.od_ilosc) opis += ', ' + d.od_ilosc + '-' + d.do_ilosc + ' ' + (d.jednostka || '');
+      r += '<div><span>' + esc(opis) + '</span><b>' + fmt(d.od) + ' - ' + fmt(d.do) + ' zł</b></div>';
+    } else {
+      r += '<div><span>' + esc(w.pompa && w.pompa.nazwa || w.pompa || '') + ', ' + esc(w.dz || (w.dolneZrodlo && w.dolneZrodlo.nazwa) || '') + '</span><b></b></div>';
+    }
+    $('rozbicie').innerHTML = r;
+    var u = '';
+    if (w.kaskada) u = 'Zapotrzebowanie domu przekracza zakres jednej pompy. Widełki liczymy dla wybranego modelu, ale realny układ to dwie pompy albo inne rozwiązanie. Handlowiec omówi to w rozmowie.';
+    else if (w.zaMala) u = 'Wybrana pompa jest słabsza, niż wynika z obliczeń dla tego domu. W rozmowie zaproponujemy właściwy model.';
+    $('wynikUwaga').textContent = u; $('wynikUwaga').classList.toggle('ukryte', !u);
+  }
+
+  /* ---------- termin telefonu ---------- */
+  function dniRobocze(){
+    var out = [], d = new Date(), nazwy = ['nd','pon','wt','śr','czw','pt','sob'];
+    if (d.getHours() >= 14) d.setDate(d.getDate() + 1);
+    while (out.length < 5) {
+      if (d.getDay() !== 0 && d.getDay() !== 6) {
+        var iso = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        var dzis = new Date(); var etyk = (iso === dzis.toISOString().slice(0, 10)) ? 'dziś' : nazwy[d.getDay()] + ' ' + d.getDate() + '.' + String(d.getMonth() + 1).padStart(2, '0');
+        out.push({ v: iso, b: etyk });
+      }
+      d.setDate(d.getDate() + 1);
+    }
+    return out;
+  }
+  function chipy(id, lista, ustaw){
+    var box = $(id); box.innerHTML = '';
+    lista.forEach(function(o){
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = o.b;
+      b.addEventListener('click', function(){ box.querySelectorAll('.chip').forEach(function(x){ x.classList.remove('wybrany'); }); b.classList.add('wybrany'); ustaw(o.v); });
+      box.appendChild(b);
+    });
+  }
+  $('btnTermin').addEventListener('click', function(){
+    if (!token) { $('bladTermin').textContent = 'Nie mamy zapisu tej konfiguracji. Zadzwoń: 62 741 32 27.'; $('terminWybor').classList.remove('ukryte'); return; }
+    chipy('dni', dniRobocze(), function(v){ terminData = v; });
+    chipy('okna', OKNA, function(v){ terminOkno = v; });
+    $('terminWybor').classList.remove('ukryte'); $('btnTermin').classList.add('ukryte');
+  });
+  $('btnTerminWyslij').addEventListener('click', async function(){
+    if (!terminData || !terminOkno) { $('bladTermin').textContent = 'Wybierz dzień i godzinę.'; return; }
+    var b = $('btnTerminWyslij'); b.disabled = true; $('bladTermin').textContent = '';
+    try {
+      var r = await fetch('/api/termin', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ token: token, termin: { data: terminData, okno: terminOkno } }) });
+      var j = null; try { j = await r.json(); } catch(e){ j = null; }
+      if (!r.ok || !j || !j.ok) throw new Error((j && j.blad) || 'Błąd serwera.');
+      pixel('Schedule', { content_name: 'telefon' });
+      $('terminBlok').classList.add('ukryte');
+      $('terminOk').textContent = 'Zapisane. Zadzwonimy ' + j.termin + ' pod numer ' + (kontaktZapisany && kontaktZapisany.telefon || 'podany w formularzu') + '.';
+      $('terminOk').classList.remove('ukryte');
+    } catch(err) {
+      $('bladTermin').textContent = (err && err.message) || 'Nie udało się zapisać. Zadzwoń: 62 741 32 27.';
+    } finally { b.disabled = false; }
+  });
+
+  $('btnOdNowa').addEventListener('click', function(){ pokazKrok(1); });
+
+  /* ---------- link powrotny ---------- */
+  (async function(){
+    var k = new URLSearchParams(location.search).get('k');
+    if (!k) return;
+    try {
+      var r = await fetch('/api/wycena', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ token: k }) });
+      var j = await r.json();
+      if (!r.ok || !j.ok) throw new Error(j.blad || 'Nie znaleźliśmy konfiguracji.');
+      token = k;
+      S = Object.assign(S, j.konfiguracja || {}, j.kwalifikacja || {}); zapamietaj();
+      $('m2').value = S.m2; rysuj('stan', STAN, 'stan'); rysuj('ogrzewanie', OGRZ, 'ogrzewanie'); rysuj('dz', DZ, 'dz'); rysujPompy();
+      Object.keys(KWAL).forEach(function(x){ rysuj(x, KWAL[x], x); });
+      if (j.kontakt) { $('imie').value = j.kontakt.imie || ''; $('telefon').value = j.kontakt.telefon || ''; $('email').value = j.kontakt.email || ''; $('adres').value = j.kontakt.adres || ''; }
+      var w = j.wycena || {};
+      $('wynikE').textContent = 'Twoja zapisana konfiguracja' + (j.utworzono ? ' z ' + j.utworzono.slice(0, 10).split('-').reverse().join('.') : '');
+      pokazWynik({ od: w.od, do: w.do, pompa: w.pompa, dz: w.dz }, j.kontakt);
+      pokazKrok(6);
+    } catch(err) {
+      $('bladM2').textContent = (err && err.message) || 'Nie udało się otworzyć zapisanej konfiguracji. Wypełnij konfigurator jeszcze raz.';
+    }
+  })();
+
+  /* ---------- Turnstile (tylko gdy jest klucz) ---------- */
+  (function(){
+    var el = $('turnstile'), klucz = el.getAttribute('data-sitekey');
+    if (!klucz) { el.remove(); return; }
+    var s = document.createElement('script'); s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js'; s.async = true; s.defer = true; document.head.appendChild(s);
+  })();
+
+  pokazKrok(1);
+})();
+</script>
+</body>
+</html>
