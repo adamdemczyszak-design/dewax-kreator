@@ -9,7 +9,6 @@
 # Sekrety wyłącznie w zmiennych środowiskowych panelu Netlify (patrz README.md).
 
 [build]
-  base = "klient"
   command = "npm run build"
   publish = "dist"
   functions = "netlify/functions"
