@@ -1016,6 +1016,26 @@
                         <div><label class="block text-[10px] font-bold text-dewax-navy/60 uppercase mb-1.5 tracking-wide">Adres E-mail</label><input type="email" id="leadEmail" placeholder="jan@kowalski.pl" class="w-full bg-white border border-slate-200 p-3 text-sm font-semibold outline-none rounded-xl transition-all"></div>
                         <div><label class="block text-[10px] font-bold text-dewax-navy/60 uppercase mb-1.5 tracking-wide">Adres Inwestycji</label><input type="text" id="leadAddress" placeholder="Poznań, ul. Polna 1" class="w-full bg-white border border-slate-200 p-3 text-sm font-semibold outline-none rounded-xl transition-all"></div>
                     </div>
+                    <!-- DANE BUDYNKU DO CRM: metraż, moc i ogrzewanie idą z kalkulatora, te cztery pola
+                         nie mają skąd wynikać z obliczeń, więc handlowiec zaznacza je tu. Wszystko trafia
+                         na kontakt w HubSpocie przy zapisie oferty (dewax_zasilanie, dewax_projekt,
+                         dewax_etap_budowy, dewax_termin_montazu). Podpowiedź pod polem to odpowiedź klienta
+                         z formularza Facebook. -->
+                    <div class="mt-4 pt-4 border-t border-dewax-blue/15">
+                        <p class="text-[10px] font-bold text-dewax-navy/60 uppercase mb-3 tracking-wide">Dane budynku do CRM <span class="text-slate-400 font-medium normal-case">(zapisują się na kliencie w HubSpocie razem z ofertą)</span></p>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div><label class="block text-[10px] font-bold text-dewax-navy/60 uppercase mb-1.5 tracking-wide">Zasilanie</label>
+                                <select id="bldZasilanie" class="w-full bg-white border border-slate-200 p-3 text-sm font-semibold outline-none rounded-xl transition-all"><option value="">- nie wiadomo -</option><option value="230V">230 V</option><option value="400V">400 V</option></select></div>
+                            <div><label class="block text-[10px] font-bold text-dewax-navy/60 uppercase mb-1.5 tracking-wide">Czy jest projekt</label>
+                                <select id="bldProjekt" class="w-full bg-white border border-slate-200 p-3 text-sm font-semibold outline-none rounded-xl transition-all"><option value="">- nie wiadomo -</option><option value="tak">tak</option><option value="nie">nie</option><option value="w trakcie">w trakcie</option></select></div>
+                            <div><label class="block text-[10px] font-bold text-dewax-navy/60 uppercase mb-1.5 tracking-wide">Etap budowy</label>
+                                <select id="bldEtap" class="w-full bg-white border border-slate-200 p-3 text-sm font-semibold outline-none rounded-xl transition-all"><option value="">- nie wiadomo -</option><option value="dzialka">działka</option><option value="projekt">projekt</option><option value="stan surowy">stan surowy</option><option value="zamieszkaly">zamieszkały</option><option value="modernizacja">modernizacja</option></select>
+                                <p id="bldEtapHint" class="mt-1 text-[10px] text-slate-400 font-medium"></p></div>
+                            <div><label class="block text-[10px] font-bold text-dewax-navy/60 uppercase mb-1.5 tracking-wide">Planowany montaż</label>
+                                <input type="month" id="bldTermin" class="w-full bg-white border border-slate-200 p-3 text-sm font-semibold outline-none rounded-xl transition-all">
+                                <p id="bldTerminHint" class="mt-1 text-[10px] text-slate-400 font-medium"></p></div>
+                        </div>
+                    </div>
                 </div>
             </details>
 
@@ -2057,7 +2077,8 @@
                 let all=[];
                 let after=null;
                 for(let page=0; page<10; page++){
-                    const body={ limit:100, properties:['firstname','lastname','email','phone','state','createdate'] };
+                    if(page===0) await dxSprawdzWorkera();
+                    const body={ limit:100, properties: dxLeadProps() };
                     if(after) body.after=after;
                     const r=await dxApiFetch(LEADS.hubspotProxy+'/search', {
                         method:'POST',
@@ -2077,7 +2098,8 @@
                             address: p.state||p.city||p.zip||'',
                             area: '',
                             hsId: c.id,
-                            date: p.createdate||''
+                            date: p.createdate||'',
+                            bud: dxBudynekZLeada(p)
                         });
                     }
                     after = data.paging && data.paging.next ? data.paging.next.after : null;
@@ -2142,6 +2164,7 @@
             if(l.phone) document.getElementById('leadPhone').value=l.phone;
             if(l.email) document.getElementById('leadEmail').value=l.email;
             if(l.address) document.getElementById('leadAddress').value=l.address;
+            dxWypelnijBudynek(l.bud);
             if(l.area && parseFloat(l.area)>0){ const a=document.getElementById('area'); if(a){ a.value=parseFloat(l.area); if(typeof recalcLive==='function') recalcLive(); } }
             document.getElementById('leadDropdown').classList.add('hidden');
             document.getElementById('leadSearch').value=l.name||l.phone||'';
@@ -3839,7 +3862,15 @@
         }
 
         // Utworzenie transakcji w HubSpocie po wygenerowaniu / wysłaniu oferty.
+        // Dwa równoległe wywołania (np. „Pobierz PDF” i „Wyślij ofertę” w tej samej
+        // sekundzie) tworzyły dwie identyczne transakcje - klucz dxLastDealKey był
+        // sprawdzany, zanim pierwsze wywołanie zdążyło go ustawić. Jedno w locie naraz.
         async function syncDealToHubSpot(clientName) {
+            if (window.__dxDealInFlight) return window.__dxDealInFlight;
+            window.__dxDealInFlight = syncDealToHubSpotRaw(clientName).finally(function(){ window.__dxDealInFlight = null; });
+            return window.__dxDealInFlight;
+        }
+        async function syncDealToHubSpotRaw(clientName) {
             if (!LEADS.hubspotProxy) { dxHsStatus('HubSpot: brak skonfigurowanego adresu workera.', false); return false; }
             try {
                 const data = window.tkCleanOfferData || ((typeof window.getOfferData === 'function') ? window.getOfferData() : null);
@@ -3877,6 +3908,14 @@
                 // nie udało się jej odnaleźć". Przy tworzeniu indeks nie gra roli.
                 const ownerId = (typeof window.dxOwnerId === 'function') ? window.dxOwnerId() : '';
                 const props = { dealname: dealname, amount: amount, deal_currency_code: 'PLN' };
+                // Dane oferty na transakcji: numer DX, model, moc, dolne źródło, data wyceny.
+                // Worker od 17.09.2026 pomija pola, których jeszcze nie ma w HubSpocie,
+                // zamiast odrzucać cały zapis; starszy przepuszcza tylko znane mu pola.
+                Object.assign(props, dxPolaOferty(data));
+                // Etap: oferta z kreatora to „Oferta wysłana”. Do tej pory transakcje
+                // z kreatora powstawały bez etapu i żadna sekcja kokpitu ich nie widziała.
+                props.dealstage = DX_ETAP_OFERTY;
+                props.pipeline = 'default';
                 if (ownerId) props.hubspot_owner_id = ownerId;
                 const payload = {
                     contactId: contactId,
@@ -3908,6 +3947,8 @@
                     } catch (e) { return null; }
                 })();
                 dxHsStatus('HubSpot: transakcja zapisana — ' + dealname + (amount ? ' · ' + Number(amount).toLocaleString('pl-PL') + ' zł brutto' : ''), true);
+                // Dane budynku na kontakcie - w tle, nie blokują wysyłki oferty.
+                dxZapiszDaneBudynku(contactId).catch(function(){});
                 if (typeof showToast === 'function') showToast('✅', 'HubSpot', 'Transakcja zapisana w HubSpocie.', 4000);
                 return true;
             } catch (e) {
@@ -3917,6 +3958,166 @@
             }
         }
         window.syncDealToHubSpot = syncDealToHubSpot;
+
+        // === DANE OFERTY I BUDYNKU DO HUBSPOTA (etap 1 kokpitu) ===
+        // Etap transakcji nadawany ofercie z kreatora. Id etapu z pipeline „Proces
+        // sprzedaży” w portalu 49004516 (contractsent = „Oferta wysłana”).
+        const DX_ETAP_OFERTY = 'contractsent';
+
+        // Co umie wdrożony worker - kreator i worker wdrażają się osobno. Stary worker
+        // odrzuca całe wyszukiwanie, gdy poprosimy o pole, którego nie ma w HubSpocie,
+        // więc o nowe pola prosimy dopiero po potwierdzeniu z /health.
+        window.__dxWorker = null;
+        async function dxSprawdzWorkera(){
+            if (window.__dxWorker) return window.__dxWorker;
+            try {
+                const r = await fetch(LEADS.hubspotProxy + '/health');
+                const d = await r.json();
+                window.__dxWorker = { wersja: String(d.wersja || ''), mozliwosci: Array.isArray(d.mozliwosci) ? d.mozliwosci : [] };
+            } catch (e) { window.__dxWorker = { wersja: '', mozliwosci: [] }; }
+            return window.__dxWorker;
+        }
+        function dxWorkerUmie(co){ return !!(window.__dxWorker && window.__dxWorker.mozliwosci.indexOf(co) >= 0); }
+
+        // Pola kontaktu: istniejące od dawna (bezpieczne zawsze) + nowe z /setup 17.09.2026
+        const DX_BUD_PROPS = ['dewax_powierzchnia_grzewcza','dewax_odbiorniki_ciepla','dewax_ciepla_woda','dewax_liczba_osob','dewax_standard_izolacji','dewax_adres_inwestycji'];
+        const DX_BUD_PROPS_NOWE = ['dewax_moc_kw','dewax_zasilanie','dewax_projekt','dewax_etap_budowy','dewax_termin_montazu'];
+        const DX_FB_PROPS = ['jaki_metra_jest_do_ogrzania','metra_domu','rodzaj_budynku','na_jakim_etapie_jest_twoja_budowa','kiedy_planuj_pastwo_dokona_zakupu','planowany_czas_realizacji_inwestycji'];
+        function dxLeadProps(){
+            return ['firstname','lastname','email','phone','state','createdate'].concat(DX_BUD_PROPS, DX_FB_PROPS, dxWorkerUmie('odporne_pola') ? DX_BUD_PROPS_NOWE : []);
+        }
+        function dxBudynekZLeada(p){
+            p = p || {};
+            return {
+                m2: p.dewax_powierzchnia_grzewcza || '', moc: p.dewax_moc_kw || '', zas: p.dewax_zasilanie || '', proj: p.dewax_projekt || '',
+                etap: p.dewax_etap_budowy || '', termin: p.dewax_termin_montazu || '', adres: p.dewax_adres_inwestycji || '',
+                ogrz: p.dewax_odbiorniki_ciepla || '', cwu: p.dewax_ciepla_woda || '', osoby: p.dewax_liczba_osob || '',
+                fbM2: p.jaki_metra_jest_do_ogrzania || p.metra_domu || '',
+                fbEtap: p.na_jakim_etapie_jest_twoja_budowa || p.rodzaj_budynku || '',
+                fbTermin: p.kiedy_planuj_pastwo_dokona_zakupu || p.planowany_czas_realizacji_inwestycji || ''
+            };
+        }
+        const DX_OGRZ_DO_TYPU = { 'Ogrzewanie podlogowe':'low', 'Grzejniki':'high', 'Mieszane':'mixed', 'Inne':'other' };
+        const DX_TYP_DO_OGRZ = { low:'Ogrzewanie podlogowe', high:'Grzejniki', mixed:'Mieszane', other:'Inne' };
+        function dxUstaw(id, v){ const el = document.getElementById(id); if (el && v != null) el.value = String(v); }
+        function dxHint(id, tekst){ const el = document.getElementById(id); if (el) el.textContent = tekst ? 'FB: ' + tekst : ''; }
+        // Wczytany lead wypełnia kalkulator tym, co już wiemy o budynku z HubSpota.
+        function dxWypelnijBudynek(b){
+            if (!b) return;
+            let przelicz = false;
+            if (parseFloat(b.m2) > 0) { dxUstaw('area', Math.round(parseFloat(b.m2))); przelicz = true; }
+            if (parseInt(b.osoby, 10) > 0) { dxUstaw('persons', parseInt(b.osoby, 10)); przelicz = true; }
+            if (b.cwu && typeof selectBath === 'function') { selectBath(/wann/i.test(b.cwu) ? 'wanna' : 'prysznic'); przelicz = true; }
+            if (b.ogrz && DX_OGRZ_DO_TYPU[b.ogrz] && typeof selectHeating === 'function') { selectHeating(DX_OGRZ_DO_TYPU[b.ogrz]); przelicz = true; }
+            dxUstaw('bldZasilanie', b.zas || '');
+            dxUstaw('bldProjekt', b.proj || '');
+            dxUstaw('bldEtap', b.etap || '');
+            dxUstaw('bldTermin', b.termin ? String(b.termin).slice(0, 7) : '');
+            dxHint('bldEtapHint', b.etap ? '' : b.fbEtap);
+            dxHint('bldTerminHint', b.termin ? '' : b.fbTermin);
+            // Adres inwestycji zapisany przez kreator jest dokładniejszy niż kod pocztowy
+            // z formularza Facebook (pole state) - wygrywa, gdy istnieje.
+            const adr = document.getElementById('leadAddress');
+            if (adr && b.adres) adr.value = b.adres;
+            if (przelicz && typeof recalcLive === 'function') { try { recalcLive(); } catch (e) {} }
+        }
+        // Standard izolacji z kalkulatora (W/m²) na cztery opcje istniejącego pola w HubSpocie.
+        function dxIzolacja(wm2){
+            if (!(wm2 > 0)) return '';
+            if (wm2 >= 100) return 'Stary dom bez ocieplenia (ok. 100 W/m2)';
+            if (wm2 >= 51) return 'Dom ocieplony po remoncie (ok. 70 W/m2)';
+            if (wm2 >= 35) return 'Standard WT 2021 (ok. 40 W/m2)';
+            return 'WT 2021 + rekuperacja (ok. 30 W/m2)';
+        }
+        function dxDaneBudynku(){
+            const b = (typeof building !== 'undefined' ? building : null) || {};
+            const d = window.tkCleanOfferData || {};
+            const v = function(id){ const el = document.getElementById(id); return el && el.value ? String(el.value).trim() : ''; };
+            const props = {};
+            const area = parseFloat(v('area')) || b.area || 0;
+            if (area > 0) props.dewax_powierzchnia_grzewcza = String(Math.round(area));
+            // Moc z oferty, która właśnie poszła do HubSpota; kalkulator tylko awaryjnie.
+            let pd = Number(d.pDesign) || 0;
+            if (!(pd > 0)) { try { pd = (typeof window.getPDesign === 'function') ? window.getPDesign() : 0; } catch (e) {} }
+            if (pd > 0) props.dewax_moc_kw = String(Math.round(pd * 10) / 10);
+            if (DX_TYP_DO_OGRZ[b.heatingType]) props.dewax_odbiorniki_ciepla = DX_TYP_DO_OGRZ[b.heatingType];
+            if (b.bathType) props.dewax_ciepla_woda = b.bathType === 'wanna' ? 'Wanna' : 'Prysznic';
+            const osoby = parseInt(v('persons'), 10) || b.persons;
+            if (osoby > 0) props.dewax_liczba_osob = String(osoby);
+            const izol = dxIzolacja(parseFloat(b.heatLoss));
+            if (izol) { props.dewax_standard_izolacji = izol; props.dewax_rekuperacja = parseFloat(b.heatLoss) <= 30 ? 'true' : 'false'; }
+            if (v('leadAddress')) props.dewax_adres_inwestycji = v('leadAddress');
+            if (v('bldZasilanie')) props.dewax_zasilanie = v('bldZasilanie');
+            else if (d.model && d.model.desc) {
+                // Zasilanie nie zaznaczone - bierzemy z wybranej pompy, o ile ma tylko jedno.
+                const ma230 = /230\s*V/i.test(d.model.desc), ma400 = /400\s*V/i.test(d.model.desc);
+                if (ma230 !== ma400) props.dewax_zasilanie = ma400 ? '400V' : '230V';
+            }
+            if (v('bldProjekt')) props.dewax_projekt = v('bldProjekt');
+            if (v('bldEtap')) props.dewax_etap_budowy = v('bldEtap');
+            if (v('bldTermin')) props.dewax_termin_montazu = /^\d{4}-\d{2}$/.test(v('bldTermin')) ? v('bldTermin') + '-01' : v('bldTermin');
+            return props;
+        }
+        // Pola transakcji z danych oferty (numer DX, model, moc, dolne źródło, data wyceny).
+        function dxPolaOferty(data){
+            data = data || {};
+            const props = {};
+            if (data.projectNo) props.dewax_numer_oferty = String(data.projectNo);
+            if (data.model && data.model.name) props.dewax_model_pompy = String(data.model.name);
+            if (data.pDesign > 0) props.dewax_moc_kw = String(Math.round(data.pDesign * 10) / 10);
+            const dz = (data.dz && data.dz.dzVal) ? String(data.dz.dzVal) : '';
+            if (dz) props.dewax_dolne_zrodlo = dz.slice(0, 250);
+            props.dewax_data_wyceny = String(Date.now());
+            return props;
+        }
+        async function dxZapiszDaneBudynku(contactId){
+            if (!contactId || !LEADS.hubspotProxy) return null;
+            await dxSprawdzWorkera();
+            let props = dxDaneBudynku();
+            if (!dxWorkerUmie('odporne_pola')) {
+                // Stary worker: zapis padnie w całości przy jednym nieznanym polu, więc
+                // wysyłamy tylko pola, które w portalu istnieją od dawna.
+                const bezpieczne = {};
+                DX_BUD_PROPS.concat(['dewax_rekuperacja']).forEach(function(k){ if (props[k] !== undefined) bezpieczne[k] = props[k]; });
+                props = bezpieczne;
+            }
+            if (!Object.keys(props).length) return null;
+            const r = await dxApiFetch(LEADS.hubspotProxy + '/contact/' + contactId, {
+                method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ properties: props })
+            });
+            const j = await r.json().catch(function(){ return null; });
+            if (!r.ok) { dxHsStatus('HubSpot: dane budynku nie zapisały się na kliencie (HTTP ' + r.status + ').', false); return null; }
+            const pominiete = (j && j.pominiete) || [];
+            if (pominiete.length) dxHsStatus('HubSpot: dane budynku zapisane, bez pól: ' + pominiete.join(', ') + ' (nie ma ich jeszcze w HubSpocie - uruchom /setup workera).', false);
+            return j;
+        }
+        // PDF oferty do HubSpot Files przez worker (/deal/{id}/pdf) - raz na transakcję.
+        async function dxWyslijPdfDoHubSpota(dealId, pdfBase64, fileName, numer){
+            if (!dealId || !pdfBase64 || !LEADS.hubspotProxy) return null;
+            if (window.__dxPdfZapisanyDla === String(dealId)) return null;
+            await dxSprawdzWorkera();
+            if (!dxWorkerUmie('pdf')) return null;   // stary worker nie ma tej ścieżki - po cichu
+            try {
+                const r = await dxApiFetch(LEADS.hubspotProxy + '/deal/' + dealId + '/pdf', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pdfBase64: String(pdfBase64).replace(/^data:application\/pdf;base64,/, ''), filename: fileName || '', numerOferty: numer || '' })
+                });
+                const j = await r.json().catch(function(){ return null; });
+                if (!r.ok || !j || j.ok === false) {
+                    dxHsStatus('HubSpot: PDF oferty nie został zapisany przy transakcji (' + ((j && j.komunikat) || ('HTTP ' + r.status)) + ').', false);
+                    return null;
+                }
+                window.__dxPdfZapisanyDla = String(dealId);
+                dxHsStatus('HubSpot: PDF oferty zapisany przy transakcji.', true);
+                return j;
+            } catch (e) {
+                dxHsStatus('HubSpot: PDF oferty nie został zapisany (' + (e && e.message ? e.message : e) + ').', false);
+                return null;
+            }
+        }
+        window.dxWyslijPdfDoHubSpota = dxWyslijPdfDoHubSpota;
+        window.dxDaneBudynku = dxDaneBudynku;
+        window.dxPolaOferty = dxPolaOferty;
 
         // Ręczna zmiana danych klienta = to już nie jest ten sam lead z HubSpota.
         // Bez tego oferta dla nowego klienta trafiała na kontakt poprzedniego leada.
@@ -5466,6 +5667,10 @@ ${(function(){const sc=dxDzScope(d); if(!sc) return ''; return '<div class="dx-2
       // dostawca. Handlowcy meldowali, że kreator mówi „wysłane", a klient nic
       // nie dostaje; ten komunikat ma nie wyprzedzać faktów.
       if (typeof syncDealToHubSpot === 'function') { try { await syncDealToHubSpot(offerData.clientName); } catch(_e){} }
+      // ten sam PDF, który poszedł do klienta, ląduje przy transakcji w HubSpocie
+      if (window.dxLastDealId && typeof window.dxWyslijPdfDoHubSpota === 'function') {
+        try { await window.dxWyslijPdfDoHubSpota(window.dxLastDealId, pdfBase64, fileName, offerData.offerNumber); } catch(_e){}
+      }
       const wysylkaId = (json && (json.id || json.messageId || (json.data && json.data.id))) || '';
       if (window.DX_DORECZENIA) {
         DX_DORECZENIA.zapisz({
@@ -6441,6 +6646,13 @@ body{background:var(--dx-bg)!important;font-family:Inter,'DM Sans',system-ui,Ari
       if(typeof showToast==='function') showToast('OK','PDF zapisany','Pobrano plik Oferta_DEWAX_'+nm+'.pdf',4000);
       // Zapisz transakcję w HubSpocie także przy samym pobraniu PDF
       try{ if(typeof syncDealToHubSpot === 'function') await syncDealToHubSpot(''); }catch(err){}
+      // pobrany PDF też trafia do HubSpota - handlowiec wysyła go potem własnym mailem
+      try{
+        if(window.dxLastDealId && typeof window.dxWyslijPdfDoHubSpota === 'function'){
+          const b64 = pdf.output('datauristring').split(',')[1];
+          await window.dxWyslijPdfDoHubSpota(window.dxLastDealId, b64, 'Oferta_DEWAX_'+nm+'.pdf', (window.tkCleanOfferData||{}).projectNo||'');
+        }
+      }catch(err){}
     }catch(e){
       console.error('Błąd zapisu PDF:',e);
       if(typeof showToast==='function') showToast('!','Błąd PDF', e.message, 6000);
