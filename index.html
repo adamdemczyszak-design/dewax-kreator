@@ -3911,7 +3911,11 @@
                 // Dane oferty na transakcji: numer DX, model, moc, dolne źródło, data wyceny.
                 // Worker od 17.09.2026 pomija pola, których jeszcze nie ma w HubSpocie,
                 // zamiast odrzucać cały zapis; starszy przepuszcza tylko znane mu pola.
-                Object.assign(props, dxPolaOferty(data));
+                // Stary worker przepuszcza pola do HubSpota bez filtra - nieznane pole
+                // odrzuciłoby całą transakcję. Dane oferty idą więc dopiero, gdy /health
+                // potwierdzi workera, który umie pominąć brakujące pole.
+                await dxSprawdzWorkera();
+                if (dxWorkerUmie('odporne_pola')) Object.assign(props, dxPolaOferty(data));
                 // Etap: oferta z kreatora to „Oferta wysłana”. Do tej pory transakcje
                 // z kreatora powstawały bez etapu i żadna sekcja kokpitu ich nie widziała.
                 props.dealstage = DX_ETAP_OFERTY;
