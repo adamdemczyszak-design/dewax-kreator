@@ -15,3 +15,7 @@ Ustalone z właścicielem 22.10.2026.
    - `fable`: najtrudniejsze rzeczy (analiza, trudne błędy).
 5. Jeden subagent = jedno zadanie, z jasnym celem i zakresem w poleceniu.
 6. Główny Claude czyta tylko raport subagenta, a kluczowe wnioski sprawdza u źródła, zanim poda je właścicielowi.
+
+## Zasady
+
+1. Gdy Adam poprawi moją odpowiedź (np. "to nie tak", "zrób inaczej", "źle"), zaproponuj jedną krótką, ogólną zasadę, która zapobiegnie temu błędowi w przyszłości. Pokaż ją i zapytaj, czy dopisać ją do CLAUDE.md. Dopisuj tylko po jego "tak", bez dublowania istniejących reguł.
