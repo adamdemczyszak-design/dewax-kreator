@@ -2413,20 +2413,21 @@
                     } else if(m && m.power){ pumpKw = m.power; }
                 }catch(e){}
             }
-            var R = (typeof window.dxSoilRates === 'function') ? window.dxSoilRates() : { wm2:20, wm:40, eff:0.70 };
+            var R = (typeof window.dxSoilRates === 'function') ? window.dxSoilRates() : { wm2:20, wm:50, eff:0.70 };
             return { cop: Math.max(cop, 1.5), pumpKw: pumpKw, soilEff: R.eff,
                      soilWm2: R.wm2, soilWm: R.wm,
                      copWater: water ? water.cop : 0, pumpKwWater: pumpKwWater,
                      copFromCatalog: !!brine };
         };
         // Jednostkowy odbior ciepla z gruntu wg VDI 4640 cz. 2 — zalezny od wybranego gruntu.
-        // Brak wyboru => ryczalt DEWAX: 20 W/m2 kolektora, 40 W/mb odwiertu
-        // (typowa wartosc projektowa przy 1800-2100 h pracy pompy w roku; VDI 4640:
-        // wilgotna glina 35-50 W/m przy 1800 h, 30-40 W/m przy 2400 h), 0,70 kW na sonde.
+        // Brak wyboru => ryczalt DEWAX: 20 W/m2 kolektora, 50 W/mb odwiertu, 0,70 kW na sonde.
+        // 50 W/mb to OPTYMISTYCZNA wartosc do wyceny wstepnej (decyzja wlasciciela 08.11.2026:
+        // konkurencja wycenia optymistycznie): gorna granica VDI 4640 dla wilgotnej gliny
+        // (35-50 W/m przy 1800 h). Ostateczna dlugosc ustala sie po wizji lokalnej.
         // eff siedzi w data-eff, a NIE w value opcji — value trzyma identyfikator
         // klasy gruntu (ryczalt / suchy / ...), odkad przestalo byc liczba.
         window.dxSoilRates = function(){
-            var w2 = 20, wm = 40, ef = 0.70;
+            var w2 = 20, wm = 50, ef = 0.70;
             try{
                 var sel = document.getElementById('dxSoil');
                 var o = (sel && sel.selectedOptions && sel.selectedOptions[0]) ? sel.selectedOptions[0] : null;
@@ -5322,7 +5323,7 @@ function dxSoil(){
     const pozArea = S.pozArea;
     const poz = S.poz;
     const qA = S.qA || 20;                      // W/m2 kolektora (VDI 4640 cz.2)
-    const qL = S.qL || 40;                    // W/mb odwiertu (VDI 4640 cz.2)
+    const qL = S.qL || 50;                    // W/mb odwiertu (VDI 4640 cz.2)
     const dzP = d.selectedDz==='koszowe' ? kosP
               : (d.selectedDz==='poziome'||d.selectedDz==='kolektorinw') ? pozArea*qA/1000
               : d.selectedDz==='wodawoda' ? cPP
@@ -6701,7 +6702,7 @@ body{background:var(--dx-bg)!important;font-family:Inter,'DM Sans',system-ui,Ari
           w2.style.cssText='margin:0 0 18px;padding:14px 16px;background:#F6F9FB;border:1px solid #D8E3EB;border-radius:12px;';
           w2.innerHTML='<label style="display:block;font-size:10px;font-weight:700;color:#0B3553;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Warunki gruntowe (wydajność dolnego źródła)</label>'
             +'<select id="dxSoil" style="width:100%;background:#fff;border:1px solid #CBD5E1;padding:12px;font-size:13px;font-weight:600;border-radius:10px;outline:none;">'
-            +'<option value="ryczalt" data-eff="0.70" data-wm2="20" data-wm="40" data-doc="ryczałt DEWAX przy braku rozpoznania gruntu — 40 W/mb odwiertu, typowo przy pracy pompy 1800–2100 h w roku" data-prov="1" selected>Ryczałt (brak rozpoznania gruntu) — 0,70 kW/sondę · 20 W/m² · 40 W/mb</option>'
+            +'<option value="ryczalt" data-eff="0.70" data-wm2="20" data-wm="50" data-doc="ryczałt DEWAX przy braku rozpoznania gruntu — 50 W/mb odwiertu, górna granica dla typowego gruntu wg VDI 4640" data-prov="1" selected>Ryczałt (brak rozpoznania gruntu) — 0,70 kW/sondę · 20 W/m² · 50 W/mb</option>'
             +'<option value="suchy" data-eff="0.40" data-wm2="10" data-wm="20" data-doc="suchy piasek / żwir (VDI 4640, 2400 h)">Suchy piasek / żwir (0,40 kW/sondę · 10 W/m² · 20 W/mb)</option>'
             +'<option value="przecietny" data-eff="0.70" data-wm2="20" data-wm="45" data-doc="grunt przeciętny (VDI 4640, 2400 h)">Przeciętny grunt (0,70 kW/sondę · 20 W/m² · 45 W/mb)</option>'
             +'<option value="wilgotny" data-eff="0.80" data-wm2="24" data-wm="40" data-doc="glina / ił wilgotny (VDI 4640, 2400 h)">Wilgotna glina / ił (0,80 kW/sondę · 24 W/m² · 40 W/mb)</option>'
@@ -7367,7 +7368,7 @@ html, body { -webkit-text-size-adjust: 100% !important; -moz-text-size-adjust: 1
    */
   // Dane PIG-PIB są brane pod uwagę tylko wtedy, gdy są wiarygodne: ocena co najmniej
   // „umiarkowana”, policzone qᵥ i niezerowe pokrycie profilu. Inaczej zostaje ryczałt
-  // DEWAX (40 W/mb) — „brak danych” nie może oznaczać najgorszego gruntu.
+  // DEWAX (50 W/mb) — „brak danych” nie może oznaczać najgorszego gruntu.
   function geoReliable(j){
     if(!j || !j.credibility) return false;
     var g = j.credibility.grade;
@@ -7400,7 +7401,7 @@ html, body { -webkit-text-size-adjust: 100% !important; -moz-text-size-adjust: 1
       id:  'geo',
       eff: cur ? (cur.getAttribute('data-eff') || '0.70') : '0.70',
       wm2: cur ? (cur.getAttribute('data-wm2') || '20') : '20',
-      wm:  '40',
+      wm:  '50',
       label: 'wg dotychczasowego wyboru'
     };
 
@@ -7473,7 +7474,7 @@ html, body { -webkit-text-size-adjust: 100% !important; -moz-text-size-adjust: 1
       out.innerHTML = '<div style="background:#fff;border:1px solid #C9CBE0;border-radius:10px;padding:12px 14px;font-size:12px;color:#14142B;line-height:1.5;">'
         + '<div style="font-weight:800;color:#000050;margin-bottom:4px;">' + esc(j.location.label) + '</div>'
         + 'Dla tej działki nie ma wiarygodnych danych geologicznych. '
-        + '<strong>Przyjęto ryczałtowo 40 W/mb odwiertu</strong> — typowa wartość przy pracy pompy 1800–2100 h w roku. '
+        + '<strong>Przyjęto ryczałtowo 50 W/mb odwiertu</strong> — górna granica dla typowego gruntu wg VDI 4640. '
         + 'Ostateczna długość dolnego źródła po wizji lokalnej.'
         + '</div>';
       return;
