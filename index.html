@@ -5583,7 +5583,7 @@ function dxSoil(){
     document.head.appendChild(st);
     window.addEventListener('beforeprint', function(){
       var s5=document.getElementById('step5');
-      var onOffer = !!(s5 && s5.offsetParent!==null);
+      var onOffer = !!(s5 && s5.offsetParent!==null) && !document.documentElement.classList.contains('dx-print-summary');
       var v=function(id){ var e=document.getElementById(id); return e && String(e.value||'').trim(); };
       document.documentElement.classList.toggle('dx-print-locked', onOffer && !(v('leadName') && v('leadAddress')));
     });
@@ -6646,7 +6646,7 @@ body{background:var(--dx-bg)!important;font-family:Inter,'DM Sans',system-ui,Ari
     var cur=(typeof currentStep!=='undefined')?currentStep:1;
     var html=items.map(cardHtml).join('');
     var p=document.getElementById('dxSummary');
-    if(p) p.innerHTML='<div class="dxs-step-chip">Krok '+cur+' z 5</div><p class="dxs-title">Podsumowanie projektu</p>'+html;
+    if(p) p.innerHTML='<div class="dxs-step-chip">Krok '+cur+' z 5</div><p class="dxs-title">Podsumowanie projektu <button type="button" class="dxs-print" onclick="window.dxPrintSummary()">Drukuj</button></p>'+html;
     var m=document.querySelector('#dxSummaryMobile .dxm-body');
     if(m) m.innerHTML=html;
     document.querySelectorAll('.dxs-card').forEach(function(el){
@@ -6656,6 +6656,52 @@ body{background:var(--dx-bg)!important;font-family:Inter,'DM Sans',system-ui,Ari
       });
     });
   }
+
+  // 4b) Druk samego podsumowania projektu na jednej kartce A4.
+  window.dxPrintSummary = function(){
+    var esc=function(t){ return String(t==null?'':t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); };
+    var logo=''; try{ if(typeof DEWAX_LOGO_SRC!=='undefined') logo=DEWAX_LOGO_SRC; }catch(e){}
+    if(!logo){ var li=document.querySelector('img[alt*="ewax" i]'); if(li) logo=li.src; }
+    var rows=summaryItems().map(function(it){
+      return '<tr><th>'+esc(it[0])+'</th><td>'+(it[1]?esc(it[1]):'—')+'</td></tr>';
+    }).join('');
+    var sh=document.getElementById('dxSummarySheet');
+    if(!sh){ sh=document.createElement('div'); sh.id='dxSummarySheet'; document.body.appendChild(sh); }
+    sh.innerHTML='<div class="dxss-top">'+(logo?'<img src="'+logo+'" alt="DEWAX">':'<b>DEWAX</b>')
+      +'<div class="dxss-meta">Podsumowanie projektu<br>'+esc(new Date().toLocaleDateString('pl-PL'))+'</div></div>'
+      +'<h1>Podsumowanie projektu</h1>'
+      +'<table>'+rows+'</table>'
+      +'<p class="dxss-note">Wycena wstępna – ostateczna długość dolnego źródła i dobór po wizji lokalnej i weryfikacji warunków gruntowo-wodnych.</p>'
+      +'<div class="dxss-foot">DEWAX Sp. z o.o., ul. Ostrowska 1, 63-330 Dobrzyca · tel. 62 741 32 27 · sprzedaz@dewax.pl · www.pompy.dewax.pl</div>';
+    document.documentElement.classList.add('dx-print-summary');
+    var done=function(){ document.documentElement.classList.remove('dx-print-summary'); window.removeEventListener('afterprint', done); };
+    window.addEventListener('afterprint', done);
+    setTimeout(function(){ window.print(); }, 50);
+  };
+  (function(){
+    var st=document.createElement('style');
+    st.textContent='#dxSummary .dxs-print{float:right;margin-top:-2px;background:#fff;color:#000050;border:none;border-radius:6px;padding:3px 9px;font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;}'
+      +'#dxSummarySheet{display:none;}'
+      +'@media print{'
+      +'html.dx-print-summary body>*{display:none!important;}'
+      +'html.dx-print-summary body>#dxSummarySheet{display:block!important;}'
+      +'html.dx-print-summary body::before{content:none!important;display:none!important;}'
+      +'html.dx-print-summary,html.dx-print-summary body{background:#fff!important;margin:0!important;padding:0!important;}'
+      +'#dxSummarySheet{font-family:"IBM Plex Sans","Segoe UI",Arial,sans-serif;color:#14142B;padding:14mm 16mm;box-sizing:border-box;width:210mm;max-height:297mm;overflow:hidden;page-break-after:avoid;break-inside:avoid;}'
+      +'#dxSummarySheet .dxss-top{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #000050;padding-bottom:6mm;margin-bottom:8mm;}'
+      +'#dxSummarySheet .dxss-top img{height:16mm;}'
+      +'#dxSummarySheet .dxss-meta{text-align:right;font-size:10pt;color:#3A3F5C;line-height:1.5;}'
+      +'#dxSummarySheet h1{font-family:Archivo,"Segoe UI",Arial,sans-serif;font-size:20pt;color:#000050;margin:0 0 6mm;}'
+      +'#dxSummarySheet table{width:100%;border-collapse:collapse;font-size:12pt;}'
+      +'#dxSummarySheet th{width:38%;text-align:left;font-weight:600;color:#3A3F5C;padding:4.2mm 3mm;border-bottom:1px solid #E3E7EF;background:#F5F7FB;}'
+      +'#dxSummarySheet td{font-weight:700;color:#000050;padding:4.2mm 3mm;border-bottom:1px solid #E3E7EF;}'
+      +'#dxSummarySheet tr:last-child td{font-size:15pt;}'
+      +'#dxSummarySheet .dxss-note{font-size:9.5pt;color:#3A3F5C;margin:8mm 0 0;}'
+      +'#dxSummarySheet .dxss-foot{margin-top:10mm;padding-top:4mm;border-top:1px solid #E3E7EF;font-size:8.5pt;color:#3A3F5C;}'
+      +'@page{size:A4 portrait;margin:0;}'
+      +'}';
+    document.head.appendChild(st);
+  })();
 
   // 5) Usuwanie emoji/strzałek z widocznego UI (poza treścią pól)
   var EMO=/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{2190}-\u{21FF}]/gu;
