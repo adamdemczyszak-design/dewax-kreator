@@ -20,3 +20,4 @@ Ustalone z właścicielem 22.10.2026.
 
 1. Gdy Adam poprawi moją odpowiedź (np. "to nie tak", "zrób inaczej", "źle"), zaproponuj jedną krótką, ogólną zasadę, która zapobiegnie temu błędowi w przyszłości. Pokaż ją i zapytaj, czy dopisać ją do CLAUDE.md. Dopisuj tylko po jego "tak", bez dublowania istniejących reguł.
 2. Przy wycenie wstępnej przyjmuj wartości optymistyczne (górny zakres normy), bo konkurencja tak wycenia. Dokładne wartości ustala się po wizji lokalnej i zastrzega w ofercie.
+3. Na końcu odpowiedzi dawaj Adamowi tylko jedno zadanie do zrobienia. Kolejne dopiero, gdy napisze, że skończył.
