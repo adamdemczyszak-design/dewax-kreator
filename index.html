@@ -5516,7 +5516,7 @@ function dxSoil(){
     const er = elecRange(d);
     const fs = freeShare(d);
     const contactLine = (function(){ const a=[]; if(d.client.phone) a.push(esc(d.client.phone)); if(d.client.email) a.push(esc(d.client.email)); return a.length?'<div class="dx-line">'+a.join(' · ')+'</div>':''; })();
-    const email = 'Dzień dobry,\n\nw załączniku przesyłam ofertę na kompletny system gruntowej pompy ciepła Thermokrafft dla inwestycji: '+(d.client.address||'Państwa budynek')+'.\n\nOferta obejmuje pompę ciepła, dolne źródło oraz montaż z uruchomieniem. Oferta jest wstępna i ważna '+d.validityDays+' dni.\n\nW razie pytań pozostaję do dyspozycji.\n\nZ poważaniem\nDEWAX Sp. z o.o.\ntel. '+DX_CONTACT.tel+' | '+DX_CONTACT.email+' | '+DX_CONTACT.www;
+    const email = 'Dzień dobry,\n\nw załączniku przesyłam ofertę na kompletny system gruntowej pompy ciepła Thermokrafft dla inwestycji: '+(d.client.address||'Państwa budynek')+'.\n\nOferta obejmuje pompę ciepła, dolne źródło oraz montaż z uruchomieniem. Oferta jest wstępna i ważna '+d.validityDays+' dni.\n\nW razie pytań pozostaję do dyspozycji.\n\nZ poważaniem\nAdam Demczyszak\nDEWAX Sp. z o.o.\ntel. '+DX_CONTACT.tel+' | '+DX_CONTACT.email+' | '+DX_CONTACT.www;
     const imgHtml = img ? '<img src="'+esc(img)+'" alt="'+esc(d.model.name)+'">' : '<div class="dx-photo-empty">Thermokrafft</div>';
     return `<div class="tk-toolbar no-print"><div><div class="tk-toolbar-title">Oferta DEWAX — podgląd</div><div class="tk-toolbar-sub">Sprawdź treść i dane klienta, a następnie wyślij ofertę jednym kliknięciem.</div><div class="tk-toolbar-sub no-print" id="dxHubspotStatus" style="display:none;margin-top:6px;font-weight:700;"></div></div><div class="tk-toolbar-actions"><button class="tk-btn tk-btn-secondary" onclick="goToStep(4)">Edytuj kosztorys</button><button class="tk-btn tk-btn-secondary" onclick="dxPrintOffer()">Drukuj</button><button class="tk-btn tk-btn-primary" onclick="dxSavePdf(this)">Zapisz PDF</button><button class="tk-btn tk-btn-secondary" onclick="dxDiagnostyka()" title="Sprawdza połączenie z HubSpotem i wysyłką maili">Sprawdź połączenie</button><button class="tk-btn tk-btn-green" onclick="generatePdfAndOpenEmail()" id="btnSendOffer">Wyślij ofertę</button></div></div><div class="tk-doc" id="cleanOfferDoc">
 
@@ -5768,7 +5768,15 @@ function dxSoil(){
       const safeName = String(offerData.clientName).replace(/[^a-zA-Z0-9ąćęłńóśźżĄĆĘŁŃÓŚŹŻ ]/g,'').replace(/\s+/g,'_') || 'Klient';
       const fileName = 'Oferta_DEWAX_' + safeName + '.pdf';
       window.__lastOfferPdf = { pdf, fileName };
-      const subjectText = 'Oferta DEWAX — gruntowa pompa ciepła dla ' + offerData.clientName;
+      // Temat osobisty, bez słowa „Oferta” — z nim Gmail częściej wrzuca mail do Promocji.
+      // Miejsce: miejscowość z adresu inwestycji (po kodzie pocztowym albo ostatni człon), inaczej klient.
+      const dxMiejsce = (function(a){
+        a = String(a || '').trim(); if(!a) return '';
+        var m = a.match(/\d{2}-\d{3}\s+([^,]+)/); if(m) return m[1].trim();
+        var parts = a.split(',').map(function(x){ return x.trim(); }).filter(Boolean);
+        return parts.length ? parts[parts.length - 1] : '';
+      })(document.getElementById('leadAddress')?.value);
+      const subjectText = 'Wycena pompy ciepła – ' + (dxMiejsce || offerData.clientName) + ' – Adam Demczyszak, DEWAX';
 
       setStatus('Wysyłam ofertę na ' + offerData.clientEmail + '...');
       let pdfBase64 = pdf.output('datauristring').split(',')[1];
